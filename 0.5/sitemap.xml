@@ -1789,6 +1789,12 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://faststream.airt.ai/latest/api/faststream/kafka/broker/registrator/KafkaRegistrator/"/>
     </url>
     <url>
+        <loc>https://faststream.airt.ai/latest/api/faststream/kafka/exceptions/BatchBufferOverflowException/</loc>
+        <lastmod>2024-12-16</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://faststream.airt.ai/latest/api/faststream/kafka/exceptions/BatchBufferOverflowException/"/>
+    </url>
+    <url>
         <loc>https://faststream.airt.ai/latest/api/faststream/kafka/fastapi/Context/</loc>
         <lastmod>2024-12-16</lastmod>
         <changefreq>daily</changefreq>
@@ -6263,6 +6269,12 @@
         <lastmod>2024-12-16</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://faststream.airt.ai/latest/public_api/faststream/kafka/broker/registrator/KafkaRegistrator/"/>
+    </url>
+    <url>
+        <loc>https://faststream.airt.ai/latest/public_api/faststream/kafka/exceptions/BatchBufferOverflowException/</loc>
+        <lastmod>2024-12-16</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://faststream.airt.ai/latest/public_api/faststream/kafka/exceptions/BatchBufferOverflowException/"/>
     </url>
     <url>
         <loc>https://faststream.airt.ai/latest/public_api/faststream/kafka/fastapi/Context/</loc>
