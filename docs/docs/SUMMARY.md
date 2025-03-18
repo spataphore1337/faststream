@@ -43,9 +43,11 @@ search:
         - [Django](getting-started/integrations/django/index.md)
     - [CLI](getting-started/cli/index.md)
     - [ASGI](getting-started/asgi.md)
-    - [OpenTelemetry](getting-started/opentelemetry/index.md)
-    - [Prometheus](getting-started/prometheus/index.md)
-    - [Logging](getting-started/logging.md)
+    - Observability
+        - [Healthcheks](getting-started/observability/healthcheks.md)
+        - [Prometheus](getting-started/observability/prometheus.md)
+        - [OpenTelemetry](getting-started/observability/opentelemetry.md)
+        - [Logging](getting-started/observability/logging.md)
     - [Config Management](getting-started/config/index.md)
     - [Task Scheduling](scheduling.md)
     - [FastStream Project Template](getting-started/template/index.md)
@@ -186,6 +188,7 @@ search:
                 - [TelemetrySettingsProvider](public_api/faststream/opentelemetry/TelemetrySettingsProvider.md)
             - rabbit
                 - [ExchangeType](public_api/faststream/rabbit/ExchangeType.md)
+                - [QueueType](public_api/faststream/rabbit/QueueType.md)
                 - [RabbitBroker](public_api/faststream/rabbit/RabbitBroker.md)
                 - [RabbitExchange](public_api/faststream/rabbit/RabbitExchange.md)
                 - [RabbitPublisher](public_api/faststream/rabbit/RabbitPublisher.md)
@@ -368,6 +371,8 @@ search:
                     - get_dependant
                         - [get_fastapi_dependant](api/faststream/broker/fastapi/get_dependant/get_fastapi_dependant.md)
                         - [get_fastapi_native_dependant](api/faststream/broker/fastapi/get_dependant/get_fastapi_native_dependant.md)
+                        - [is_faststream_decorated](api/faststream/broker/fastapi/get_dependant/is_faststream_decorated.md)
+                        - [mark_faststream_decorated](api/faststream/broker/fastapi/get_dependant/mark_faststream_decorated.md)
                     - route
                         - [StreamMessage](api/faststream/broker/fastapi/route/StreamMessage.md)
                         - [build_faststream_to_fastapi_parser](api/faststream/broker/fastapi/route/build_faststream_to_fastapi_parser.md)
@@ -563,6 +568,7 @@ search:
                     - [TopicPartition](api/faststream/confluent/schemas/TopicPartition.md)
                     - params
                         - [ConsumerConnectionParams](api/faststream/confluent/schemas/params/ConsumerConnectionParams.md)
+                        - [SecurityOptions](api/faststream/confluent/schemas/params/SecurityOptions.md)
                     - partition
                         - [TopicPartition](api/faststream/confluent/schemas/partition/TopicPartition.md)
                 - security
@@ -625,11 +631,14 @@ search:
                     - [KafkaRouter](api/faststream/kafka/fastapi/KafkaRouter.md)
                     - fastapi
                         - [KafkaRouter](api/faststream/kafka/fastapi/fastapi/KafkaRouter.md)
+                - listener
+                    - [LoggingListenerProxy](api/faststream/kafka/listener/LoggingListenerProxy.md)
                 - message
                     - [ConsumerProtocol](api/faststream/kafka/message/ConsumerProtocol.md)
                     - [FakeConsumer](api/faststream/kafka/message/FakeConsumer.md)
                     - [KafkaAckableMessage](api/faststream/kafka/message/KafkaAckableMessage.md)
                     - [KafkaMessage](api/faststream/kafka/message/KafkaMessage.md)
+                    - [KafkaRawMessage](api/faststream/kafka/message/KafkaRawMessage.md)
                 - opentelemetry
                     - [KafkaTelemetryMiddleware](api/faststream/kafka/opentelemetry/KafkaTelemetryMiddleware.md)
                     - middleware
@@ -676,6 +685,7 @@ search:
                 - subscriber
                     - asyncapi
                         - [AsyncAPIBatchSubscriber](api/faststream/kafka/subscriber/asyncapi/AsyncAPIBatchSubscriber.md)
+                        - [AsyncAPIConcurrentBetweenPartitionsSubscriber](api/faststream/kafka/subscriber/asyncapi/AsyncAPIConcurrentBetweenPartitionsSubscriber.md)
                         - [AsyncAPIConcurrentDefaultSubscriber](api/faststream/kafka/subscriber/asyncapi/AsyncAPIConcurrentDefaultSubscriber.md)
                         - [AsyncAPIDefaultSubscriber](api/faststream/kafka/subscriber/asyncapi/AsyncAPIDefaultSubscriber.md)
                         - [AsyncAPISubscriber](api/faststream/kafka/subscriber/asyncapi/AsyncAPISubscriber.md)
@@ -683,6 +693,7 @@ search:
                         - [create_subscriber](api/faststream/kafka/subscriber/factory/create_subscriber.md)
                     - usecase
                         - [BatchSubscriber](api/faststream/kafka/subscriber/usecase/BatchSubscriber.md)
+                        - [ConcurrentBetweenPartitionsSubscriber](api/faststream/kafka/subscriber/usecase/ConcurrentBetweenPartitionsSubscriber.md)
                         - [ConcurrentDefaultSubscriber](api/faststream/kafka/subscriber/usecase/ConcurrentDefaultSubscriber.md)
                         - [DefaultSubscriber](api/faststream/kafka/subscriber/usecase/DefaultSubscriber.md)
                         - [LogicSubscriber](api/faststream/kafka/subscriber/usecase/LogicSubscriber.md)
@@ -872,6 +883,7 @@ search:
                     - [PublishingStatus](api/faststream/prometheus/types/PublishingStatus.md)
             - rabbit
                 - [ExchangeType](api/faststream/rabbit/ExchangeType.md)
+                - [QueueType](api/faststream/rabbit/QueueType.md)
                 - [RabbitBroker](api/faststream/rabbit/RabbitBroker.md)
                 - [RabbitExchange](api/faststream/rabbit/RabbitExchange.md)
                 - [RabbitPublisher](api/faststream/rabbit/RabbitPublisher.md)
@@ -932,6 +944,7 @@ search:
                 - schemas
                     - [BaseRMQInformation](api/faststream/rabbit/schemas/BaseRMQInformation.md)
                     - [ExchangeType](api/faststream/rabbit/schemas/ExchangeType.md)
+                    - [QueueType](api/faststream/rabbit/schemas/QueueType.md)
                     - [RabbitExchange](api/faststream/rabbit/schemas/RabbitExchange.md)
                     - [RabbitQueue](api/faststream/rabbit/schemas/RabbitQueue.md)
                     - [ReplyConfig](api/faststream/rabbit/schemas/ReplyConfig.md)
@@ -942,7 +955,16 @@ search:
                     - proto
                         - [BaseRMQInformation](api/faststream/rabbit/schemas/proto/BaseRMQInformation.md)
                     - queue
+                        - [ClassicQueueArgs](api/faststream/rabbit/schemas/queue/ClassicQueueArgs.md)
+                        - [CommonQueueArgs](api/faststream/rabbit/schemas/queue/CommonQueueArgs.md)
+                        - [QueueClassicTypeSpecificArgs](api/faststream/rabbit/schemas/queue/QueueClassicTypeSpecificArgs.md)
+                        - [QueueQuorumTypeSpecificArgs](api/faststream/rabbit/schemas/queue/QueueQuorumTypeSpecificArgs.md)
+                        - [QueueStreamTypeSpecificArgs](api/faststream/rabbit/schemas/queue/QueueStreamTypeSpecificArgs.md)
+                        - [QueueType](api/faststream/rabbit/schemas/queue/QueueType.md)
+                        - [QuorumQueueArgs](api/faststream/rabbit/schemas/queue/QuorumQueueArgs.md)
                         - [RabbitQueue](api/faststream/rabbit/schemas/queue/RabbitQueue.md)
+                        - [SharedQueueClassicAndQuorumArgs](api/faststream/rabbit/schemas/queue/SharedQueueClassicAndQuorumArgs.md)
+                        - [StreamQueueArgs](api/faststream/rabbit/schemas/queue/StreamQueueArgs.md)
                     - reply
                         - [ReplyConfig](api/faststream/rabbit/schemas/reply/ReplyConfig.md)
                 - security

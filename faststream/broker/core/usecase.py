@@ -151,11 +151,11 @@ class BrokerUsecase(
             middlewares=middlewares,
             dependencies=dependencies,
             decoder=cast(
-                Optional["AsyncCustomCallable"],
+                "Optional[AsyncCustomCallable]",
                 to_async(decoder) if decoder else None,
             ),
             parser=cast(
-                Optional["AsyncCustomCallable"],
+                "Optional[AsyncCustomCallable]",
                 to_async(parser) if parser else None,
             ),
             # Broker is a root router
@@ -285,7 +285,7 @@ class BrokerUsecase(
 
     def publisher(self, *args: Any, **kwargs: Any) -> "PublisherProto[MsgType]":
         pub = super().publisher(*args, **kwargs)
-        if self.running:
+        if self.running or self._connection is not None:
             self.setup_publisher(pub)
         return pub
 
@@ -300,7 +300,7 @@ class BrokerUsecase(
 
             if not self.use_custom and self.logger is not None:
                 set_logger_fmt(
-                    cast(logging.Logger, self.logger),
+                    cast("logging.Logger", self.logger),
                     self._get_fmt(),
                 )
 

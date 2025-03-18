@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, cast
 
 from faststream.broker.message import decode_message, gen_cor_id
-from faststream.kafka.message import FAKE_CONSUMER, KafkaMessage
+from faststream.kafka.message import FAKE_CONSUMER, KafkaMessage, KafkaRawMessage
 from faststream.utils.context.repository import context
 
 if TYPE_CHECKING:
@@ -27,7 +27,7 @@ class AioKafkaParser:
 
     async def parse_message(
         self,
-        message: "ConsumerRecord",
+        message: Union["ConsumerRecord", "KafkaRawMessage"],
     ) -> "StreamMessage[ConsumerRecord]":
         """Parses a Kafka message."""
         headers = {i: j.decode() for i, j in message.headers}
@@ -42,7 +42,9 @@ class AioKafkaParser:
             correlation_id=headers.get("correlation_id", gen_cor_id()),
             raw_message=message,
             path=self.get_path(message.topic),
-            consumer=getattr(handler, "consumer", None) or FAKE_CONSUMER,
+            consumer=getattr(message, "consumer", None)
+            or getattr(handler, "consumer", None)
+            or FAKE_CONSUMER,
         )
 
     async def decode_message(
@@ -98,7 +100,7 @@ class AioKafkaBatchParser(AioKafkaParser):
     ) -> "DecodedMessage":
         """Decode a batch of messages."""
         # super() should be here due python can't find it in comprehension
-        super_obj = cast(AioKafkaParser, super())
+        super_obj = cast("AioKafkaParser", super())
 
         return [
             decode_message(await super_obj.parse_message(m)) for m in msg.raw_message
