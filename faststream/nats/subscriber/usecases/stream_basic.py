@@ -1,8 +1,7 @@
-from collections.abc import Iterable
+from collections.abc import AsyncIterator, Iterable
 from typing import (
     TYPE_CHECKING,
     Annotated,
-    AsyncIterator,
     Optional,
 )
 

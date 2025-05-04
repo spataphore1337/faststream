@@ -1,9 +1,8 @@
-from collections.abc import Iterable, Sequence
+from collections.abc import AsyncIterator, Iterable, Sequence
 from copy import deepcopy
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncIterator,
     Optional,
 )
 

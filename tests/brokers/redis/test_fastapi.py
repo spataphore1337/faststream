@@ -91,8 +91,8 @@ class TestRouter(FastAPITestcase):
 
         router = self.router_class()
 
-        @router.subscriber(stream=StreamSub(queue, polling_interval=10))
-        async def handler(msg) -> None:
+        @router.subscriber(stream=StreamSub(queue, polling_interval=1000))
+        async def handler(msg):
             mock(msg)
             event.set()
 
@@ -120,8 +120,8 @@ class TestRouter(FastAPITestcase):
 
         router = self.router_class()
 
-        @router.subscriber(stream=StreamSub(queue, polling_interval=10, batch=True))
-        async def handler(msg: list[str]) -> None:
+        @router.subscriber(stream=StreamSub(queue, polling_interval=1000, batch=True))
+        async def handler(msg: list[str]):
             mock(msg)
             event.set()
 
