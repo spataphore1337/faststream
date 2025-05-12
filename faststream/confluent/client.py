@@ -19,15 +19,18 @@ from confluent_kafka.admin import AdminClient, NewTopic
 from faststream._internal.constants import EMPTY
 from faststream._internal.log import logger as faststream_logger
 from faststream._internal.utils.functions import call_or_await, run_in_executor
-from faststream.confluent import config as config_module
-from faststream.confluent.schemas import TopicPartition
 from faststream.exceptions import SetupError
+
+from . import config as config_module
+from .schemas import TopicPartition
 
 if TYPE_CHECKING:
     from typing_extensions import NotRequired, TypedDict
 
     from faststream._internal.basic_types import AnyDict, LoggerProto
     from faststream._internal.state.logger import LoggerState
+
+    from .schemas.params import SecurityOptions
 
     class _SendKwargs(TypedDict):
         value: Optional[Union[str, bytes]]
@@ -98,13 +101,13 @@ class AsyncConfluentProducer:
             "allow.auto.create.topics": allow_auto_create_topics,
         }
 
-        final_config = {
-            **config.as_config_dict(),
+        self.config = {
             **config_from_params,
             **dict(security_config or {}),
+            **config.as_config_dict(),
         }
 
-        self.producer = Producer(final_config, logger=self.logger_state.logger.logger)  # type: ignore[call-arg]
+        self.producer = Producer(self.config, logger=self.logger_state.logger.logger)  # type: ignore[call-arg]
 
         self.__running = True
         self._poll_task = asyncio.create_task(self._poll_loop())
@@ -266,17 +269,17 @@ class AsyncConfluentConsumer:
                 ],
             )
 
-        final_config = config.as_config_dict()
-
         config_from_params = {
             "allow.auto.create.topics": allow_auto_create_topics,
             "topic.metadata.refresh.interval.ms": 1000,
             "bootstrap.servers": bootstrap_servers,
             "client.id": client_id,
-            "group.id": group_id
-            or final_config.get("group.id", "faststream-consumer-group"),
-            "group.instance.id": group_instance_id
-            or final_config.get("group.instance.id", None),
+            "group.id": config.config.get(
+                "group.id", group_id or "faststream-consumer-group"
+            ),
+            "group.instance.id": config.config.get(
+                "group.instance.id", group_instance_id
+            ),
             "fetch.wait.max.ms": fetch_max_wait_ms,
             "fetch.max.bytes": fetch_max_bytes,
             "fetch.min.bytes": fetch_min_bytes,
@@ -296,11 +299,13 @@ class AsyncConfluentConsumer:
             "isolation.level": isolation_level,
         }
         self.allow_auto_create_topics = allow_auto_create_topics
-        final_config.update(config_from_params)
-        final_config.update(**dict(security_config or {}))
 
-        self.config = final_config
-        self.consumer = Consumer(final_config, logger=self.logger_state.logger.logger)  # type: ignore[call-arg]
+        self.config = {
+            **config_from_params,
+            **dict(security_config or {}),
+            **config.as_config_dict(),
+        }
+        self.consumer = Consumer(self.config, logger=self.logger_state.logger.logger)  # type: ignore[call-arg]
 
         # A pool with single thread is used in order to execute the commands of the consumer sequentially:
         # https://github.com/ag2ai/faststream/issues/1904#issuecomment-2506990895

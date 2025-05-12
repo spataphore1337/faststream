@@ -1,10 +1,47 @@
 import pytest
+from dirty_equals import IsPartialDict
 
 from faststream.confluent import KafkaBroker, config
 from tests.brokers.base.connection import BrokerConnectionTestcase
 
+from .conftest import Settings
 
-def test_correct_config() -> None:
+
+@pytest.mark.confluent()
+@pytest.mark.asyncio()
+async def test_correct_config_merging(queue: str) -> None:
+    broker = KafkaBroker(
+        connections_max_idle_ms=1000,
+        config={
+            "compression.codec": config.CompressionCodec.lz4,
+            "message.max.bytes": 1000,
+            "debug": config.Debug.broker,
+        },
+    )
+
+    @broker.subscriber(queue)
+    async def handler() -> None: ...
+
+    async with broker:
+        await broker.start()
+
+        expected_config = IsPartialDict({
+            "connections.max.idle.ms": 1000,
+            "compression.codec": config.CompressionCodec.lz4,
+            "message.max.bytes": 1000,
+            "debug": config.Debug.broker,
+        })
+
+        producer_config = broker._producer._producer.producer.config
+
+        assert producer_config == expected_config
+
+        subscriber_config = broker._subscribers[0].consumer.config
+
+        assert subscriber_config == expected_config
+
+
+def test_correct_config_with_dict() -> None:
     broker = KafkaBroker(
         config={
             "compression.codec": config.CompressionCodec.none,
@@ -40,5 +77,5 @@ def test_correct_config() -> None:
 class TestConnection(BrokerConnectionTestcase):
     broker = KafkaBroker
 
-    def get_broker_args(self, settings):
+    def get_broker_args(self, settings: Settings) -> dict[str, str]:
         return {"bootstrap_servers": settings.url}

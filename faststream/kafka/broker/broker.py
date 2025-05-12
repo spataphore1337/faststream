@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     from aiokafka.structs import RecordMetadata
     from fast_depends.dependencies import Dependant
     from fast_depends.library.serializer import SerializerProto
-    from typing_extensions import TypedDict, Unpack
+    from typing_extensions import TypedDict
 
     from faststream._internal.basic_types import (
         AnyDict,
@@ -604,30 +604,6 @@ class KafkaBroker(
         await self._producer.disconnect()
 
         self._connection = None
-
-    @override
-    async def connect(  # type: ignore[override]
-        self,
-        bootstrap_servers: Annotated[
-            Union[str, Iterable[str]],
-            Doc("Kafka addresses to connect."),
-        ] = EMPTY,
-        **kwargs: "Unpack[KafkaInitKwargs]",
-    ) -> Callable[..., aiokafka.AIOKafkaConsumer]:
-        """Connect to Kafka servers manually.
-
-        Consumes the same with `KafkaBroker.__init__` arguments and overrides them.
-        To startup subscribers too you should use `broker.start()` after/instead this method.
-        """
-        if bootstrap_servers is not EMPTY:
-            connect_kwargs: AnyDict = {
-                **kwargs,
-                "bootstrap_servers": bootstrap_servers,
-            }
-        else:
-            connect_kwargs = {**kwargs}
-
-        return await super().connect(**connect_kwargs)
 
     @override
     async def _connect(  # type: ignore[override]

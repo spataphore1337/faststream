@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from fast_depends.dependencies import Dependant
     from fast_depends.library.serializer import SerializerProto
     from redis.asyncio.connection import BaseParser
-    from typing_extensions import TypedDict, Unpack
+    from typing_extensions import TypedDict
 
     from faststream._internal.basic_types import (
         AnyDict,
@@ -261,23 +261,6 @@ class RedisBroker(
                 decoder=self._decoder,
             )
         )
-
-    @override
-    async def connect(  # type: ignore[override]
-        self,
-        url: Optional[str] = EMPTY,
-        **kwargs: "Unpack[RedisInitKwargs]",
-    ) -> "Redis[bytes]":
-        """Connect to the Redis server."""
-        if url is not EMPTY:
-            connect_kwargs: AnyDict = {
-                "url": url,
-                **kwargs,
-            }
-        else:
-            connect_kwargs = dict(kwargs).copy()
-
-        return await super().connect(**connect_kwargs)
 
     @override
     async def _connect(  # type: ignore[override]

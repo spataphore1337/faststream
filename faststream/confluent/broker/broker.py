@@ -423,19 +423,6 @@ class KafkaBroker(  # type: ignore[misc]
 
         self._connection = None
 
-    async def connect(
-        self,
-        bootstrap_servers: Annotated[
-            Union[str, Iterable[str]],
-            Doc("Kafka addresses to connect."),
-        ] = EMPTY,
-        **kwargs: Any,
-    ) -> Callable[..., AsyncConfluentConsumer]:
-        if bootstrap_servers is not EMPTY:
-            kwargs["bootstrap_servers"] = bootstrap_servers
-
-        return await super().connect(**kwargs)
-
     @override
     async def _connect(  # type: ignore[override]
         self,

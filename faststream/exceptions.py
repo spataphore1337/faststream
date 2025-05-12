@@ -163,3 +163,28 @@ pip install watchfiles
 """
 
 SCHEMA_NOT_SUPPORTED = "`{schema_filename}` not supported. Make sure that your schema is valid and schema version supported by FastStream"
+
+INSTALL_FASTSTREAM_RABBIT = """
+To use RabbitMQ with FastStream, please install dependencies:\n
+pip install faststream[rabbit]
+"""
+
+INSTALL_FASTSTREAM_KAFKA = """
+To use Apache Kafka with FastStream, please install dependencies:\n
+pip install faststream[kafka]
+"""
+
+INSTALL_FASTSTREAM_CONFLUENT = """
+To use Confluent Kafka with FastStream, please install dependencies:\n
+pip install faststream[confluent]"""
+
+
+INSTALL_FASTSTREAM_REDIS = """
+To use Redis with FastStream, please install dependencies:\n
+pip install faststream[redis]
+"""
+
+INSTALL_FASTSTREAM_NATS = """
+To use NATS with FastStream, please install dependencies:\n
+pip install faststream[nats]
+"""

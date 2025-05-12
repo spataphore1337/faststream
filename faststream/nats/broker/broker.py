@@ -546,6 +546,16 @@ class NatsBroker(
         Returns:
             `nats.aio.Client` connected object.
         """
+        if servers is not EMPTY or kwargs:
+            warnings.warn(
+                "`NatsBroker().connect(...) options were "
+                "deprecated in **FastStream 0.5.40**. "
+                "Please, use `NatsBroker(...)` instead. "
+                "All these options will be removed in **FastStream 0.6.0**.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         if servers is not EMPTY:
             connect_kwargs: AnyDict = {
                 **kwargs,
