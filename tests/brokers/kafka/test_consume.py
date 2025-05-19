@@ -587,13 +587,17 @@ async def test_concurrent_consume_between_partitions_assignment_warning(
 
         if warning:
             assert (
-                len([x for x in logger.log.call_args_list if x[0][0] == logging.WARNING])
+                len([
+                    x for x in logger.log.call_args_list if x[0][0] == logging.WARNING
+                ])
                 == 2
             )
 
         else:
             assert (
-                len([x for x in logger.log.call_args_list if x[0][0] == logging.WARNING])
+                len([
+                    x for x in logger.log.call_args_list if x[0][0] == logging.WARNING
+                ])
                 == 0
             )
 

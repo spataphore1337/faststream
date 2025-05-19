@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, ReadOnly
 
 from faststream.exceptions import IncorrectState
 
@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 class ConnectionState(Protocol):
-    connection: "RobustConnection"
+    connection: ReadOnly["RobustConnection"]
 
 
 class EmptyConnectionState(ConnectionState):
@@ -23,7 +23,5 @@ class EmptyConnectionState(ConnectionState):
 class ConnectedState(ConnectionState):
     __slots__ = ("connection",)
 
-    def __init__(
-        self, connection: "RobustConnection"
-    ) -> None:
+    def __init__(self, connection: "RobustConnection") -> None:
         self.connection = connection

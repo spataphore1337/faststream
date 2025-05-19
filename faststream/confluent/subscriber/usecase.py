@@ -31,7 +31,7 @@ if TYPE_CHECKING:
         BrokerMiddleware,
         CustomCallable,
     )
-    from faststream.confluent.client import AsyncConfluentConsumer
+    from faststream.confluent.helpers.client import AsyncConfluentConsumer
     from faststream.message import StreamMessage
 
 

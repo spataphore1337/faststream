@@ -37,7 +37,6 @@ from .logging import make_rabbit_logger_state
 from .registrator import RabbitRegistrator
 
 if TYPE_CHECKING:
-    from ssl import SSLContext
     from types import TracebackType
 
     import aiormq
@@ -253,24 +252,10 @@ class RabbitBroker(
         )
 
     @override
-    async def _connect(  # type: ignore[override]
-        self,
-        url: str,
-        *,
-        fail_fast: bool,
-        reconnect_interval: "TimeoutType",
-        timeout: "TimeoutType",
-        ssl_context: Optional["SSLContext"],
-    ) -> "RobustConnection":
+    async def _connect(self) -> "RobustConnection":
         connection = cast(
             "RobustConnection",
-            await connect_robust(
-                url,
-                timeout=timeout,
-                ssl_context=ssl_context,
-                reconnect_interval=reconnect_interval,
-                fail_fast=fail_fast,
-            ),
+            await connect_robust(**self._connection_kwargs),
         )
 
         if self._channel is None:

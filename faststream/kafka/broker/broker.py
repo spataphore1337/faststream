@@ -534,30 +534,33 @@ class KafkaBroker(
             specification_url = servers
 
         super().__init__(
-            bootstrap_servers=servers,
-            # both args
-            client_id=client_id,
-            api_version=protocol_version,
-            request_timeout_ms=request_timeout_ms,
-            retry_backoff_ms=retry_backoff_ms,
-            metadata_max_age_ms=metadata_max_age_ms,
-            connections_max_idle_ms=connections_max_idle_ms,
-            sasl_kerberos_service_name=sasl_kerberos_service_name,
-            sasl_kerberos_domain_name=sasl_kerberos_domain_name,
-            sasl_oauth_token_provider=sasl_oauth_token_provider,
-            loop=loop,
-            # publisher args
-            acks=acks,
-            key_serializer=key_serializer,
-            value_serializer=value_serializer,
-            compression_type=compression_type,
-            max_batch_size=max_batch_size,
-            partitioner=partitioner,
-            max_request_size=max_request_size,
-            linger_ms=linger_ms,
-            enable_idempotence=enable_idempotence,
-            transactional_id=transactional_id,
-            transaction_timeout_ms=transaction_timeout_ms,
+            **dict(
+                bootstrap_servers=servers,
+                # both args
+                client_id=client_id,
+                api_version=protocol_version,
+                request_timeout_ms=request_timeout_ms,
+                retry_backoff_ms=retry_backoff_ms,
+                metadata_max_age_ms=metadata_max_age_ms,
+                connections_max_idle_ms=connections_max_idle_ms,
+                sasl_kerberos_service_name=sasl_kerberos_service_name,
+                sasl_kerberos_domain_name=sasl_kerberos_domain_name,
+                sasl_oauth_token_provider=sasl_oauth_token_provider,
+                loop=loop,
+                # publisher args
+                acks=acks,
+                key_serializer=key_serializer,
+                value_serializer=value_serializer,
+                compression_type=compression_type,
+                max_batch_size=max_batch_size,
+                partitioner=partitioner,
+                max_request_size=max_request_size,
+                linger_ms=linger_ms,
+                enable_idempotence=enable_idempotence,
+                transactional_id=transactional_id,
+                transaction_timeout_ms=transaction_timeout_ms,
+                **parse_security(security),
+            ),
             # Basic args
             graceful_timeout=graceful_timeout,
             dependencies=dependencies,
@@ -593,6 +596,17 @@ class KafkaBroker(
             )
         )
 
+    @override
+    async def _connect(self) -> Callable[..., aiokafka.AIOKafkaConsumer]:
+        producer = aiokafka.AIOKafkaProducer(**self._connection_kwargs)
+
+        await self._producer.connect(producer)
+
+        consumer_options, _ = filter_by_dict(
+            ConsumerConnectionParams, self._connection_kwargs
+        )
+        return partial(aiokafka.AIOKafkaConsumer, **consumer_options)
+
     async def close(
         self,
         exc_type: Optional[type[BaseException]] = None,
@@ -604,26 +618,6 @@ class KafkaBroker(
         await self._producer.disconnect()
 
         self._connection = None
-
-    @override
-    async def _connect(  # type: ignore[override]
-        self,
-        *,
-        client_id: str,
-        **kwargs: Any,
-    ) -> Callable[..., aiokafka.AIOKafkaConsumer]:
-        security_params = parse_security(self.security)
-        kwargs.update(security_params)
-
-        producer = aiokafka.AIOKafkaProducer(
-            **kwargs,
-            client_id=client_id,
-        )
-
-        await self._producer.connect(producer)
-
-        connection_kwargs, _ = filter_by_dict(ConsumerConnectionParams, kwargs)
-        return partial(aiokafka.AIOKafkaConsumer, **connection_kwargs)
 
     async def start(self) -> None:
         """Connect broker to Kafka and startup all subscribers."""

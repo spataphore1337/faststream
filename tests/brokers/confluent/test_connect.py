@@ -1,7 +1,8 @@
 import pytest
 from dirty_equals import IsPartialDict
 
-from faststream.confluent import KafkaBroker, config
+from faststream.confluent import KafkaBroker
+from faststream.confluent.helpers import config
 from tests.brokers.base.connection import BrokerConnectionTestcase
 
 from .conftest import Settings
@@ -58,7 +59,7 @@ def test_correct_config_with_dict() -> None:
         },
     )
 
-    assert broker.config.as_config_dict() == {
+    assert broker.config.consumer_config == IsPartialDict({
         "compression.codec": config.CompressionCodec.none.value,
         "compression.type": config.CompressionType.none.value,
         "client.dns.lookup": config.ClientDNSLookup.use_all_dns_ips.value,
@@ -70,7 +71,7 @@ def test_correct_config_with_dict() -> None:
         "builtin.features": config.BuiltinFeatures.gzip.value,
         "debug": config.Debug.broker.value,
         "group.protocol": config.GroupProtocol.classic.value,
-    }
+    })
 
 
 @pytest.mark.confluent()
