@@ -1,13 +1,14 @@
-from typing import TYPE_CHECKING, Protocol, ReadOnly
+from typing import TYPE_CHECKING, Protocol
 
 from faststream.exceptions import IncorrectState
 
 if TYPE_CHECKING:
     from aio_pika import RobustConnection
+    from typing_extensions import ReadOnly
 
 
 class ConnectionState(Protocol):
-    connection: ReadOnly["RobustConnection"]
+    connection: "ReadOnly[RobustConnection]"
 
 
 class EmptyConnectionState(ConnectionState):
