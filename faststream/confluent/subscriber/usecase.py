@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from collections.abc import AsyncIterator, Iterable, Sequence
+from collections.abc import AsyncIterator, Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -25,13 +25,10 @@ if TYPE_CHECKING:
     from faststream._internal.basic_types import AnyDict
     from faststream._internal.publisher.proto import BasePublisherProto
     from faststream._internal.state import BrokerState
-    from faststream._internal.types import CustomCallable
-    from faststream.confluent.client import AsyncConfluentConsumer
     from faststream._internal.types import (
-        AsyncCallable,
-        BrokerMiddleware,
         CustomCallable,
     )
+    from faststream.confluent.client import AsyncConfluentConsumer
     from faststream.confluent.helpers.client import AsyncConfluentConsumer
     from faststream.message import StreamMessage
 

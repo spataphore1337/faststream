@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from collections.abc import AsyncIterator, Iterable, Sequence
+from collections.abc import AsyncIterator, Sequence
 from itertools import chain
 from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
@@ -7,7 +7,7 @@ import anyio
 from aiokafka import ConsumerRecord, TopicPartition
 from aiokafka.errors import ConsumerStoppedError, KafkaError
 from typing_extensions import override
-from faststream._internal.subscriber.configs import SpecificationSubscriberConfigs
+
 from faststream._internal.subscriber.mixins import ConcurrentMixin, TasksMixin
 from faststream._internal.subscriber.usecase import SubscriberUsecase
 from faststream._internal.subscriber.utils import process_msg

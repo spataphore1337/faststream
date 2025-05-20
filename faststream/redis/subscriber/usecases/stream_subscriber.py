@@ -1,5 +1,5 @@
 import math
-from collections.abc import AsyncIterator, Awaitable, Iterable, Sequence
+from collections.abc import AsyncIterator, Awaitable
 from copy import deepcopy
 from typing import (
     TYPE_CHECKING,
@@ -30,12 +30,7 @@ from .basic import LogicSubscriber
 
 if TYPE_CHECKING:
     from anyio import Event
-    from fast_depends.dependencies import Dependant
 
-    from faststream._internal.types import (
-        AsyncCallable,
-        BrokerMiddleware,
-    )
     from faststream.message import StreamMessage as BrokerStreamMessage
 
 

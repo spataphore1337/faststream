@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator, Iterable
+from collections.abc import AsyncIterator
 from typing import (
     TYPE_CHECKING,
     Annotated,

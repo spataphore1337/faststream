@@ -34,7 +34,6 @@ class ConfluentSubscriberBaseConfigs(SubscriberUseCaseConfigs):
         if self._ack_policy is AckPolicy.ACK_FIRST:
             self.connection_data["enable_auto_commit"] = True
 
-
     @property
     def ack_policy(self) -> AckPolicy:
         if self.auto_commit is not EMPTY:

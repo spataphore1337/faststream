@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
     from faststream._internal.basic_types import AnyDict
 
+
 @dataclass
 class KafkaSubscriberBaseConfigs(SubscriberUseCaseConfigs):
     topics: Sequence[str]

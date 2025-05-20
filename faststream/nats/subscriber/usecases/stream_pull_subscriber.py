@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator, Awaitable, Iterable
+from collections.abc import AsyncIterator, Awaitable
 from contextlib import suppress
 from typing import (
     TYPE_CHECKING,
