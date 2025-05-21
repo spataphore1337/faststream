@@ -11,7 +11,7 @@ from pamqp import commands as spec
 from pamqp.header import ContentHeader
 from typing_extensions import override
 
-from faststream._internal.subscriber.utils import resolve_custom_func
+from faststream._internal.endpoint.utils import resolve_custom_func
 from faststream._internal.testing.broker import TestBroker
 from faststream.exceptions import SubscriberNotFound
 from faststream.message import gen_cor_id

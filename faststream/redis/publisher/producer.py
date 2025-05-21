@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Any, Optional, Union, cast
 import anyio
 from typing_extensions import override
 
-from faststream._internal.publisher.proto import ProducerProto
-from faststream._internal.subscriber.utils import resolve_custom_func
+from faststream._internal.endpoint.utils import resolve_custom_func
+from faststream._internal.producer import ProducerProto
 from faststream._internal.utils.nuid import NUID
 from faststream.redis.helpers.state import (
     ConnectedState,

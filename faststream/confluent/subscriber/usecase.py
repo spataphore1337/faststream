@@ -11,24 +11,21 @@ import anyio
 from confluent_kafka import KafkaException, Message
 from typing_extensions import override
 
-from faststream._internal.subscriber.mixins import ConcurrentMixin, TasksMixin
-from faststream._internal.subscriber.usecase import SubscriberUsecase
-from faststream._internal.subscriber.utils import process_msg
+from faststream._internal.endpoint.subscriber import SubscriberUsecase
+from faststream._internal.endpoint.subscriber.mixins import ConcurrentMixin, TasksMixin
+from faststream._internal.endpoint.utils import process_msg
 from faststream._internal.types import MsgType
 from faststream.confluent.parser import AsyncConfluentParser
 from faststream.confluent.publisher.fake import KafkaFakePublisher
 from faststream.confluent.schemas import TopicPartition
-from faststream.confluent.subscriber.configs import ConfluentSubscriberBaseConfigs
 from faststream.middlewares import AckPolicy
 
 if TYPE_CHECKING:
     from faststream._internal.basic_types import AnyDict
-    from faststream._internal.publisher.proto import BasePublisherProto
+    from faststream._internal.endpoint.publisher import BasePublisherProto
     from faststream._internal.state import BrokerState
-    from faststream._internal.types import (
-        CustomCallable,
-    )
-    from faststream.confluent.client import AsyncConfluentConsumer
+    from faststream._internal.types import CustomCallable
+    from faststream.confluent.configs import KafkaSubscriberConfig
     from faststream.confluent.helpers.client import AsyncConfluentConsumer
     from faststream.message import StreamMessage
 
@@ -45,17 +42,17 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[MsgType]):
 
     client_id: Optional[str]
 
-    def __init__(self, base_configs: ConfluentSubscriberBaseConfigs) -> None:
-        super().__init__(configs=base_configs)
+    def __init__(self, config: "KafkaSubscriberConfig", /) -> None:
+        super().__init__(config)
 
-        self.__connection_data = base_configs.connection_data
+        self.__connection_data = config.connection_data
 
-        self.group_id = base_configs.group_id
-        self.topics = base_configs.topics
-        self.partitions = base_configs.partitions
+        self.group_id = config.group_id
+        self.topics = config.topics
+        self.partitions = config.partitions
 
         self.consumer = None
-        self.polling_interval = base_configs.polling_interval
+        self.polling_interval = config.polling_interval
 
         # Setup it later
         self.client_id = ""
@@ -232,15 +229,13 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[MsgType]):
 
 
 class DefaultSubscriber(LogicSubscriber[Message]):
-    def __init__(self, base_configs: ConfluentSubscriberBaseConfigs) -> None:
+    def __init__(self, config: "KafkaSubscriberConfig", /) -> None:
         self.parser = AsyncConfluentParser(
-            is_manual=base_configs.ack_policy is not AckPolicy.ACK_FIRST
+            is_manual=config.ack_policy is not AckPolicy.ACK_FIRST
         )
-        base_configs.default_decoder = self.parser.decode_message
-        base_configs.default_parser = self.parser.parse_message
-        super().__init__(
-            base_configs=base_configs,
-        )
+        config.default_decoder = self.parser.decode_message
+        config.default_parser = self.parser.parse_message
+        super().__init__(config)
 
     async def get_msg(self) -> Optional["Message"]:
         assert self.consumer, "You should setup subscriber at first."  # nosec B101
@@ -274,19 +269,18 @@ class ConcurrentDefaultSubscriber(ConcurrentMixin["Message"], DefaultSubscriber)
 class BatchSubscriber(LogicSubscriber[tuple[Message, ...]]):
     def __init__(
         self,
+        config: "KafkaSubscriberConfig",
+        /,
         max_records: Optional[int],
-        base_configs: ConfluentSubscriberBaseConfigs,
     ) -> None:
         self.max_records = max_records
 
         self.parser = AsyncConfluentParser(
-            is_manual=base_configs.ack_policy is not AckPolicy.ACK_FIRST
+            is_manual=config.ack_policy is not AckPolicy.ACK_FIRST
         )
-        base_configs.default_decoder = self.parser.decode_message_batch
-        base_configs.default_parser = self.parser.parse_message_batch
-        super().__init__(
-            base_configs=base_configs,
-        )
+        config.default_decoder = self.parser.decode_message_batch
+        config.default_parser = self.parser.parse_message_batch
+        super().__init__(config)
 
     async def get_msg(self) -> Optional[tuple["Message", ...]]:
         assert self.consumer, "You should setup subscriber at first."  # nosec B101

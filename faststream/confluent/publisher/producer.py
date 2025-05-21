@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING, NoReturn, Optional, Union
 
 from typing_extensions import override
 
-from faststream._internal.publisher.proto import ProducerProto
-from faststream._internal.subscriber.utils import resolve_custom_func
+from faststream._internal.endpoint.utils import resolve_custom_func
+from faststream._internal.producer import ProducerProto
 from faststream.confluent.parser import AsyncConfluentParser
 from faststream.exceptions import FeatureNotSupportedException
 from faststream.message import encode_message

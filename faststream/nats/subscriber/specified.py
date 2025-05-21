@@ -1,6 +1,6 @@
 from typing_extensions import override
 
-from faststream._internal.subscriber.specified import (
+from faststream._internal.endpoint.subscriber.specification.specified import (
     SpecificationSubscriber as SpecificationSubscriberMixin,
 )
 from faststream.nats.subscriber.usecases import (

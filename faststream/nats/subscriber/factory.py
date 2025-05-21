@@ -13,12 +13,9 @@ from nats.js.client import (
 )
 
 from faststream._internal.constants import EMPTY
-from faststream._internal.subscriber.configs import (
-    SpecificationSubscriberConfigs,
-)
 from faststream.exceptions import SetupError
 from faststream.middlewares import AckPolicy
-from faststream.nats.subscriber.configs import NatsSubscriberBaseConfigs
+from faststream.nats.configs import NatsSubscriberConfigFacade
 from faststream.nats.subscriber.specified import (
     SpecificationBatchPullStreamSubscriber,
     SpecificationConcurrentCoreSubscriber,
@@ -162,21 +159,19 @@ def create_subscriber(
             "max_msgs": max_msgs,
         }
 
-    base_configs = NatsSubscriberBaseConfigs(
+    config = NatsSubscriberConfigFacade(
         subject=subject,
         config=config,
         extra_options=extra_options,
-        ack_policy=ack_policy,
         no_reply=no_reply,
         broker_dependencies=broker_dependencies,
         broker_middlewares=broker_middlewares,
         default_decoder=EMPTY,
         default_parser=EMPTY,
         ack_first=ack_first,
+        _ack_policy=ack_policy,
         no_ack=no_ack,
-    )
-
-    specification_configs = SpecificationSubscriberConfigs(
+        # specification
         title_=title_,
         description_=description_,
         include_in_schema=include_in_schema,
@@ -184,71 +179,62 @@ def create_subscriber(
 
     if obj_watch is not None:
         return SpecificationObjStoreWatchSubscriber(
+            config,
             obj_watch=obj_watch,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
         )
 
     if kv_watch is not None:
         return SpecificationKeyValueWatchSubscriber(
+            config,
             kv_watch=kv_watch,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
         )
 
     if stream is None:
         if max_workers > 1:
             return SpecificationConcurrentCoreSubscriber(
+                config,
                 max_workers=max_workers,
                 queue=queue,
-                base_configs=base_configs,
-                specification_configs=specification_configs,
             )
 
         return SpecificationCoreSubscriber(
+            config,
             queue=queue,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
         )
 
     if max_workers > 1:
         if pull_sub is not None:
             return SpecificationConcurrentPullStreamSubscriber(
+                config,
                 queue=queue,
                 max_workers=max_workers,
                 pull_sub=pull_sub,
-                base_configs=base_configs,
-                specification_configs=specification_configs,
             )
 
         return SpecificationConcurrentPushStreamSubscriber(
+            config,
             max_workers=max_workers,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
         )
 
     if pull_sub is not None:
         if pull_sub.batch:
             return SpecificationBatchPullStreamSubscriber(
+                config,
                 pull_sub=pull_sub,
                 stream=stream,
-                base_configs=base_configs,
-                specification_configs=specification_configs,
             )
 
         return SpecificationPullStreamSubscriber(
+            config,
             queue=queue,
             pull_sub=pull_sub,
             stream=stream,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
         )
 
     return SpecificationPushStreamSubscriber(
+        config,
         queue=queue,
         stream=stream,
-        base_configs=base_configs,
-        specification_configs=specification_configs,
     )
 
 

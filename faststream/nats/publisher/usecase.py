@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING, Optional, Union
 from nats.aio.msg import Msg
 from typing_extensions import overload, override
 
-from faststream._internal.publisher.usecase import PublisherUsecase
+from faststream._internal.endpoint.publisher import PublisherUsecase
 from faststream.message import gen_cor_id
-from faststream.nats.publisher.configs import NatsPublisherBaseConfigs
+from faststream.nats.configs import NatsPublisherConfig
 from faststream.nats.response import NatsPublishCommand
 from faststream.response.publish_type import PublishType
 
@@ -24,15 +24,15 @@ class LogicPublisher(PublisherUsecase[Msg]):
 
     _producer: Union["NatsFastProducer", "NatsJSFastProducer"]
 
-    def __init__(self, *, base_configs: NatsPublisherBaseConfigs) -> None:
+    def __init__(self, config: NatsPublisherConfig, /) -> None:
         """Initialize NATS publisher object."""
-        super().__init__(publisher_configs=base_configs)
+        super().__init__(config)
 
-        self.subject = base_configs.subject
-        self.stream = base_configs.stream
-        self.timeout = base_configs.timeout
-        self.headers = base_configs.headers or {}
-        self.reply_to = base_configs.reply_to
+        self.subject = config.subject
+        self.stream = config.stream
+        self.timeout = config.timeout
+        self.headers = config.headers or {}
+        self.reply_to = config.reply_to
 
     @overload
     async def publish(

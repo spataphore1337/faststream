@@ -8,7 +8,7 @@ from typing import (
 
 from typing_extensions import override
 
-from faststream._internal.subscriber.usecase import SubscriberUsecase
+from faststream._internal.endpoint.subscriber.usecase import SubscriberUsecase
 from faststream._internal.types import MsgType
 from faststream.nats.helpers import KVBucketDeclarer, OSBucketDeclarer
 from faststream.nats.publisher.fake import NatsFakePublisher
@@ -16,7 +16,6 @@ from faststream.nats.schemas.js_stream import compile_nats_wildcard
 from faststream.nats.subscriber.adapters import (
     Unsubscriptable,
 )
-from faststream.nats.subscriber.configs import NatsSubscriberBaseConfigs
 from faststream.nats.subscriber.state import (
     ConnectedSubscriberState,
     EmptySubscriberState,
@@ -27,7 +26,8 @@ if TYPE_CHECKING:
     from faststream._internal.basic_types import (
         AnyDict,
     )
-    from faststream._internal.publisher.proto import BasePublisherProto, ProducerProto
+    from faststream._internal.endpoint.publisher import BasePublisherProto
+    from faststream._internal.producer import ProducerProto
     from faststream._internal.state import (
         BrokerState as BasicState,
         Pointer,
@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     )
     from faststream.message import StreamMessage
     from faststream.nats.broker.state import BrokerState
+    from faststream.nats.configs import NatsSubscriberConfig
     from faststream.nats.helpers import KVBucketDeclarer, OSBucketDeclarer
 
 
@@ -49,15 +50,15 @@ class LogicSubscriber(SubscriberUsecase[MsgType]):
 
     def __init__(
         self,
-        *,
-        base_configs: NatsSubscriberBaseConfigs,
+        config: "NatsSubscriberConfig",
+        /,
     ) -> None:
-        self.subject = base_configs.subject
-        self.config = base_configs.config
+        super().__init__(config)
 
-        self.extra_options = base_configs.extra_options or {}
+        self.subject = config.subject
+        self.config = config.config
 
-        super().__init__(configs=base_configs)
+        self.extra_options = config.extra_options or {}
 
         self._fetch_sub = None
         self.subscription = None
@@ -155,13 +156,6 @@ class LogicSubscriber(SubscriberUsecase[MsgType]):
 
 class DefaultSubscriber(LogicSubscriber[MsgType]):
     """Basic class for Core & JetStream Subscribers."""
-
-    def __init__(
-        self,
-        *,
-        base_configs: NatsSubscriberBaseConfigs,
-    ) -> None:
-        super().__init__(base_configs=base_configs)
 
     def _make_response_publisher(
         self,

@@ -15,6 +15,9 @@ try:
     from .testing import TestRabbitBroker
 
 except ImportError as e:
+    if "'aio_pika'" not in e.msg:
+        raise
+
     from faststream.exceptions import INSTALL_FASTSTREAM_RABBIT
 
     raise ImportError(INSTALL_FASTSTREAM_RABBIT) from e

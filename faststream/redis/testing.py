@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock
 import anyio
 from typing_extensions import TypedDict, override
 
-from faststream._internal.subscriber.utils import resolve_custom_func
+from faststream._internal.endpoint.utils import resolve_custom_func
 from faststream._internal.testing.broker import TestBroker
 from faststream.exceptions import SetupError, SubscriberNotFound
 from faststream.message import gen_cor_id

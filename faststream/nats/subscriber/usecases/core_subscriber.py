@@ -8,11 +8,10 @@ from typing import (
 from nats.errors import TimeoutError
 from typing_extensions import Doc, override
 
-from faststream._internal.subscriber.mixins import ConcurrentMixin
-from faststream._internal.subscriber.utils import process_msg
+from faststream._internal.endpoint.subscriber.mixins import ConcurrentMixin
+from faststream._internal.endpoint.utils import process_msg
 from faststream.middlewares import AckPolicy
 from faststream.nats.parser import NatsParser
-from faststream.nats.subscriber.configs import NatsSubscriberBaseConfigs
 
 from .basic import DefaultSubscriber
 
@@ -21,6 +20,7 @@ if TYPE_CHECKING:
     from nats.aio.subscription import Subscription
 
     from faststream.message import StreamMessage
+    from faststream.nats.configs import NatsSubscriberConfig
     from faststream.nats.message import NatsMessage
 
 
@@ -30,20 +30,20 @@ class CoreSubscriber(DefaultSubscriber["Msg"]):
 
     def __init__(
         self,
+        config: "NatsSubscriberConfig",
+        /,
         *,
-        # default args
         queue: str,
-        base_configs: NatsSubscriberBaseConfigs,
     ) -> None:
         parser_ = NatsParser(
-            pattern=base_configs.subject,
-            is_ack_disabled=base_configs.ack_policy is not AckPolicy.DO_NOTHING,
+            pattern=config.subject,
+            is_ack_disabled=config.ack_policy is not AckPolicy.DO_NOTHING,
         )
+        config.default_parser = parser_.parse_message
+        config.default_decoder = parser_.decode_message
+        super().__init__(config)
 
         self.queue = queue
-        base_configs.default_parser = parser_.parse_message
-        base_configs.default_decoder = parser_.decode_message
-        super().__init__(base_configs=base_configs)
 
     @override
     async def get_one(

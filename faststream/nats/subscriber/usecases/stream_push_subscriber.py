@@ -5,7 +5,7 @@ from typing import (
 
 from typing_extensions import override
 
-from faststream._internal.subscriber.mixins import ConcurrentMixin
+from faststream._internal.endpoint.subscriber.mixins import ConcurrentMixin
 
 from .stream_basic import StreamSubscriber
 

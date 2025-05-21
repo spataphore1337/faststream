@@ -7,10 +7,7 @@ from typing import (
 )
 
 from faststream._internal.constants import EMPTY
-from faststream._internal.subscriber.configs import (
-    SpecificationSubscriberConfigs,
-)
-from faststream.confluent.subscriber.configs import ConfluentSubscriberBaseConfigs
+from faststream.confluent.configs import KafkaSubscriberConfigFacade
 from faststream.confluent.subscriber.specified import (
     SpecificationBatchSubscriber,
     SpecificationConcurrentDefaultSubscriber,
@@ -67,7 +64,7 @@ def create_subscriber(
         max_workers=max_workers,
     )
 
-    base_configs = ConfluentSubscriberBaseConfigs(
+    config = KafkaSubscriberConfigFacade(
         topics=topics,
         partitions=partitions,
         polling_interval=polling_interval,
@@ -78,12 +75,10 @@ def create_subscriber(
         broker_middlewares=broker_middlewares,
         no_reply=no_reply,
         broker_dependencies=broker_dependencies,
-        ack_policy=ack_policy,
+        _ack_policy=ack_policy,
         default_decoder=EMPTY,
         default_parser=EMPTY,
-    )
-
-    specification_configs = SpecificationSubscriberConfigs(
+        # specification
         title_=title_,
         description_=description_,
         include_in_schema=include_in_schema,
@@ -91,23 +86,17 @@ def create_subscriber(
 
     if batch:
         return SpecificationBatchSubscriber(
-            specification_configs=specification_configs,
-            base_configs=base_configs,
+            config,
             max_records=max_records,
         )
 
     if max_workers > 1:
         return SpecificationConcurrentDefaultSubscriber(
-            specification_configs=specification_configs,
-            base_configs=base_configs,
-            # concurrent arg
+            config,
             max_workers=max_workers,
         )
 
-    return SpecificationDefaultSubscriber(
-        specification_configs=specification_configs,
-        base_configs=base_configs,
-    )
+    return SpecificationDefaultSubscriber(config)
 
 
 def _validate_input_for_misconfigure(

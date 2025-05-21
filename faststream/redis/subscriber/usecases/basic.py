@@ -10,24 +10,24 @@ from typing import (
 import anyio
 from typing_extensions import TypeAlias, override
 
-from faststream._internal.subscriber.mixins import ConcurrentMixin, TasksMixin
-from faststream._internal.subscriber.usecase import SubscriberUsecase
+from faststream._internal.endpoint.subscriber.mixins import ConcurrentMixin, TasksMixin
+from faststream._internal.endpoint.subscriber.usecase import SubscriberUsecase
 from faststream.redis.message import (
     UnifyRedisDict,
 )
 from faststream.redis.publisher.fake import RedisFakePublisher
-from faststream.redis.subscriber.configs import RedisSubscriberBaseConfigs
 
 if TYPE_CHECKING:
     from redis.asyncio.client import Redis
 
     from faststream._internal.basic_types import AnyDict
-    from faststream._internal.publisher.proto import BasePublisherProto
+    from faststream._internal.endpoint.publisher import BasePublisherProto
     from faststream._internal.state import BrokerState, Pointer
     from faststream._internal.types import (
         CustomCallable,
     )
     from faststream.message import StreamMessage as BrokerStreamMessage
+    from faststream.redis.configs import RedisSubscriberConfig
 
 
 TopicName: TypeAlias = bytes
@@ -39,8 +39,8 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[UnifyRedisDict]):
 
     _client: Optional["Redis[bytes]"]
 
-    def __init__(self, *, base_configs: RedisSubscriberBaseConfigs) -> None:
-        super().__init__(configs=base_configs)
+    def __init__(self, config: "RedisSubscriberConfig", /) -> None:
+        super().__init__(config)
 
         self._client = None
 
@@ -139,9 +139,13 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[UnifyRedisDict]):
 
 class ConcurrentSubscriber(ConcurrentMixin["BrokerStreamMessage"], LogicSubscriber):
     def __init__(
-        self, *, base_configs: RedisSubscriberBaseConfigs, max_workers: int
+        self,
+        config: "RedisSubscriberConfig",
+        /,
+        *,
+        max_workers: int,
     ) -> None:
-        super().__init__(max_workers=max_workers, base_configs=base_configs)
+        super().__init__(config, max_workers=max_workers)
 
         self._client = None
 

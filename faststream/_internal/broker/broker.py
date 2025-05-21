@@ -16,6 +16,7 @@ from typing_extensions import Doc, Self
 
 from faststream._internal.constants import EMPTY
 from faststream._internal.context.repository import ContextRepo
+from faststream._internal.endpoint.subscriber import SubscriberProto
 from faststream._internal.state import (
     DIState,
     LoggerState,
@@ -26,7 +27,6 @@ from faststream._internal.state.broker import (
     InitialBrokerState,
 )
 from faststream._internal.state.producer import ProducerUnset
-from faststream._internal.subscriber.proto import SubscriberProto
 from faststream._internal.types import (
     AsyncCustomCallable,
     BrokerMiddleware,
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from fast_depends.library.serializer import SerializerProto
 
     from faststream._internal.basic_types import AnyDict, Decorator
-    from faststream._internal.publisher.proto import ProducerProto
+    from faststream._internal.producer import ProducerProto
     from faststream.security import BaseSecurity
     from faststream.specification.schema.extra import Tag, TagDict
 

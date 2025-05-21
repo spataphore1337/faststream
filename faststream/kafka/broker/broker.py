@@ -612,9 +612,7 @@ class KafkaBroker(
         admin_options, _ = filter_by_dict(
             AdminClientConnectionParams, self._connection_kwargs
         )
-        self._admin_client = aiokafka.admin.client.AIOKafkaAdminClient(
-            **admin_options
-        )
+        self._admin_client = aiokafka.admin.client.AIOKafkaAdminClient(**admin_options)
         await self._admin_client.start()
 
         consumer_options, _ = filter_by_dict(

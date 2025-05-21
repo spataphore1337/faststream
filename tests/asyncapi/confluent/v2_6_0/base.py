@@ -1,4 +1,3 @@
-
 from faststream.confluent import KafkaBroker
 from faststream.specification.asyncapi import AsyncAPI
 from faststream.specification.base.specification import Specification

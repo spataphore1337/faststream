@@ -12,7 +12,7 @@ import anyio
 from nats.aio.msg import Msg
 from typing_extensions import override
 
-from faststream._internal.subscriber.utils import resolve_custom_func
+from faststream._internal.endpoint.utils import resolve_custom_func
 from faststream._internal.testing.broker import TestBroker
 from faststream.exceptions import SubscriberNotFound
 from faststream.message import encode_message, gen_cor_id

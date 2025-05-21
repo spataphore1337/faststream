@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from itertools import chain
 from typing import TYPE_CHECKING
 
-from faststream._internal.subscriber.specified import (
+from faststream._internal.endpoint.subscriber.specification.specified import (
     SpecificationSubscriber as SpecificationSubscriberMixin,
 )
 from faststream.confluent.subscriber.usecase import (

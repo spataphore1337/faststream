@@ -24,6 +24,9 @@ try:
     from .testing import TestNatsBroker
 
 except ImportError as e:
+    if "'nats'" not in e.msg:
+        raise
+
     from faststream.exceptions import INSTALL_FASTSTREAM_NATS
 
     raise ImportError(INSTALL_FASTSTREAM_NATS) from e

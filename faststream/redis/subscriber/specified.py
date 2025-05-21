@@ -1,4 +1,4 @@
-from faststream._internal.subscriber.specified import (
+from faststream._internal.endpoint.subscriber.specification.specified import (
     SpecificationSubscriber as SpecificationSubscriberMixin,
 )
 from faststream.redis.schemas import ListSub, StreamSub
@@ -24,7 +24,8 @@ from faststream.specification.schema.bindings import ChannelBinding, redis
 
 
 class SpecificationSubscriber(
-    SpecificationSubscriberMixin, RedisSpecificationProtocol[SubscriberSpec]
+    SpecificationSubscriberMixin,
+    RedisSpecificationProtocol[SubscriberSpec],
 ):
     """A class to represent a Redis handler."""
 

@@ -8,8 +8,8 @@ from typing import (
 import anyio
 from typing_extensions import Unpack, override
 
-from faststream._internal.publisher.proto import ProducerProto
-from faststream._internal.subscriber.utils import resolve_custom_func
+from faststream._internal.endpoint.utils import resolve_custom_func
+from faststream._internal.producer import ProducerProto
 from faststream.exceptions import FeatureNotSupportedException, IncorrectState
 from faststream.rabbit.parser import AioPikaParser
 from faststream.rabbit.schemas import RABBIT_REPLY, RabbitExchange

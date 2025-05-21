@@ -12,23 +12,23 @@ from nats.errors import TimeoutError
 from nats.js.api import ObjectInfo
 from typing_extensions import Doc, override
 
-from faststream._internal.subscriber.mixins import TasksMixin
-from faststream._internal.subscriber.utils import process_msg
+from faststream._internal.endpoint.subscriber.mixins import TasksMixin
+from faststream._internal.endpoint.utils import process_msg
 from faststream.nats.parser import (
     ObjParser,
 )
 from faststream.nats.subscriber.adapters import (
     UnsubscribeAdapter,
 )
-from faststream.nats.subscriber.configs import NatsSubscriberBaseConfigs
 
 from .basic import LogicSubscriber
 
 if TYPE_CHECKING:
     from nats.js.object_store import ObjectStore
 
-    from faststream._internal.publisher.proto import BasePublisherProto
+    from faststream._internal.endpoint.publisher import BasePublisherProto
     from faststream.message import StreamMessage
+    from faststream.nats.configs import NatsSubscriberConfig
     from faststream.nats.message import NatsObjMessage
     from faststream.nats.schemas import ObjWatch
 
@@ -44,15 +44,15 @@ class ObjStoreWatchSubscriber(
     _fetch_sub: Optional[UnsubscribeAdapter["ObjectStore.ObjectWatcher"]]
 
     def __init__(
-        self, *, obj_watch: "ObjWatch", base_configs: NatsSubscriberBaseConfigs
+        self, config: "NatsSubscriberConfig", /, *, obj_watch: "ObjWatch",
     ) -> None:
         parser = ObjParser(pattern="")
+        config.default_parser = parser.parse_message
+        config.default_decoder = parser.decode_message
+        super().__init__(config)
 
         self.obj_watch = obj_watch
         self.obj_watch_conn = None
-        base_configs.default_parser = parser.parse_message
-        base_configs.default_decoder = parser.decode_message
-        super().__init__(base_configs=base_configs)
 
     @override
     async def get_one(

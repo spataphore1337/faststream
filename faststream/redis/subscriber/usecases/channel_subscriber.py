@@ -12,9 +12,8 @@ from redis.asyncio.client import (
 )
 from typing_extensions import TypeAlias, override
 
-from faststream._internal.configs import SpecificationConfigs
-from faststream._internal.subscriber.mixins import ConcurrentMixin
-from faststream._internal.subscriber.utils import process_msg
+from faststream._internal.endpoint.subscriber.mixins import ConcurrentMixin
+from faststream._internal.endpoint.utils import process_msg
 from faststream.middlewares import AckPolicy
 from faststream.redis.message import (
     PubSubMessage,
@@ -23,12 +22,12 @@ from faststream.redis.message import (
 from faststream.redis.parser import (
     RedisPubSubParser,
 )
-from faststream.redis.subscriber.configs import RedisSubscriberBaseConfigs
 
 from .basic import LogicSubscriber
 
 if TYPE_CHECKING:
     from faststream.message import StreamMessage as BrokerStreamMessage
+    from faststream.redis.configs import RedisSubscriberConfig
     from faststream.redis.schemas import PubSub
 
 
@@ -41,15 +40,16 @@ class ChannelSubscriber(LogicSubscriber):
 
     def __init__(
         self,
+        config: "RedisSubscriberConfig",
+        /,
         *,
         channel: "PubSub",
-        base_configs: RedisSubscriberBaseConfigs,
     ) -> None:
         parser = RedisPubSubParser(pattern=channel.path_regex)
-        base_configs.default_decoder = parser.decode_message
-        base_configs.default_parser = parser.parse_message
-        base_configs.ack_policy = AckPolicy.DO_NOTHING
-        super().__init__(base_configs=base_configs)
+        config.default_decoder = parser.decode_message
+        config.default_parser = parser.parse_message
+        config.ack_policy = AckPolicy.DO_NOTHING
+        super().__init__(config)
 
         self.channel = channel
         self.subscription = None
@@ -179,23 +179,9 @@ class ChannelSubscriber(LogicSubscriber):
 
 
 class ConcurrentChannelSubscriber(
-    ConcurrentMixin["BrokerStreamMessage"], ChannelSubscriber
+    ConcurrentMixin["BrokerStreamMessage"],
+    ChannelSubscriber,
 ):
-    def __init__(
-        self,
-        *,
-        base_configs: RedisSubscriberBaseConfigs,
-        specification_configs: SpecificationConfigs,
-        channel: "PubSub",
-        max_workers: int,
-    ) -> None:
-        super().__init__(
-            base_configs=base_configs,
-            specification_configs=specification_configs,
-            channel=channel,
-            max_workers=max_workers,
-        )
-
     async def start(self) -> None:
         await super().start()
         self.start_consume_task()

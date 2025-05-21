@@ -5,7 +5,7 @@ from faststream.exceptions import IncorrectState
 from .producer import ProducerUnset
 
 if TYPE_CHECKING:
-    from faststream._internal.publisher.proto import ProducerProto
+    from faststream._internal.producer import ProducerProto
 
     from .fast_depends import DIState
     from .logger import LoggerState

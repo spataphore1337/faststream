@@ -18,7 +18,7 @@ from typing_extensions import Doc, deprecated, override
 from faststream.__about__ import SERVICE_NAME
 from faststream._internal.broker.broker import ABCBroker, BrokerUsecase
 from faststream._internal.constants import EMPTY
-from faststream._internal.publisher.proto import PublisherProto
+from faststream._internal.endpoint.publisher import PublisherProto
 from faststream.message import gen_cor_id
 from faststream.rabbit.helpers import ChannelManager, RabbitDeclarer
 from faststream.rabbit.publisher.producer import AioPikaFastProducer

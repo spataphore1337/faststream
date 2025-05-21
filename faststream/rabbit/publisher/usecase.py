@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, Annotated, Optional, Union
 from aio_pika import IncomingMessage
 from typing_extensions import Doc, Unpack, override
 
-from faststream._internal.publisher.usecase import PublisherUsecase
+from faststream._internal.endpoint.publisher import PublisherUsecase
 from faststream._internal.utils.data import filter_by_dict
 from faststream.message import gen_cor_id
-from faststream.rabbit.publisher.configs import RabbitPublisherBaseConfigs
+from faststream.rabbit.configs import RabbitPublisherConfig
 from faststream.rabbit.response import RabbitPublishCommand
 from faststream.rabbit.schemas import RabbitExchange, RabbitQueue
 from faststream.response.publish_type import PublishType
@@ -51,27 +51,27 @@ class LogicPublisher(PublisherUsecase[IncomingMessage]):
 
     def __init__(
         self,
-        *,
-        base_configs: RabbitPublisherBaseConfigs,
+        config: RabbitPublisherConfig,
+        /
     ) -> None:
-        self.queue = base_configs.queue
-        self.routing_key = base_configs.routing_key
+        super().__init__(config)
 
-        self.exchange = base_configs.exchange
+        self.queue = config.queue
+        self.routing_key = config.routing_key
 
-        super().__init__(publisher_configs=base_configs)
+        self.exchange = config.exchange
 
-        self.headers = base_configs.message_kwargs.pop("headers") or {}
-        self.reply_to: str = base_configs.message_kwargs.pop("reply_to", None) or ""
-        self.timeout = base_configs.message_kwargs.pop("timeout", None)
+        self.headers = config.message_kwargs.pop("headers") or {}
+        self.reply_to: str = config.message_kwargs.pop("reply_to", None) or ""
+        self.timeout = config.message_kwargs.pop("timeout", None)
 
         message_options, _ = filter_by_dict(
-            MessageOptions, dict(base_configs.message_kwargs)
+            MessageOptions, dict(config.message_kwargs)
         )
         self.message_options = message_options
 
         publish_options, _ = filter_by_dict(
-            PublishOptions, dict(base_configs.message_kwargs)
+            PublishOptions, dict(config.message_kwargs)
         )
         self.publish_options = publish_options
 

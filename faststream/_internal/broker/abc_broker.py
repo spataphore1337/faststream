@@ -7,11 +7,11 @@ from typing import (
     Optional,
 )
 
-from faststream._internal.publisher.proto import PublisherProto
+from faststream._internal.endpoint.publisher import PublisherProto
+from faststream._internal.endpoint.specification.base import SpecificationEndpoint
+from faststream._internal.endpoint.subscriber import SubscriberProto
 from faststream._internal.state import BrokerState, Pointer
-from faststream._internal.subscriber.proto import SubscriberProto
 from faststream._internal.types import BrokerMiddleware, CustomCallable, MsgType
-from faststream.specification.proto import EndpointSpecification
 from faststream.specification.schema import PublisherSpec, SubscriberSpec
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class FinalSubscriber(
-    EndpointSpecification[MsgType, SubscriberSpec],
+    SpecificationEndpoint[MsgType, SubscriberSpec],
     SubscriberProto[MsgType],
 ):
     @property
@@ -29,7 +29,7 @@ class FinalSubscriber(
 
 
 class FinalPublisher(
-    EndpointSpecification[MsgType, PublisherSpec],
+    SpecificationEndpoint[MsgType, PublisherSpec],
     PublisherProto[MsgType],
 ):
     pass

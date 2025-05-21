@@ -32,7 +32,7 @@ class ChannelManager:
         self,
         channel: Optional["Channel"] = None,
     ) -> "aio_pika.RobustChannel":
-        """Declare a queue."""
+        """Declare a channel."""
         if channel is None:
             channel = self.__default_channel
 

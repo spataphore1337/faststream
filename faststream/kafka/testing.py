@@ -14,7 +14,7 @@ import anyio
 from aiokafka import ConsumerRecord
 from typing_extensions import override
 
-from faststream._internal.subscriber.utils import resolve_custom_func
+from faststream._internal.endpoint.utils import resolve_custom_func
 from faststream._internal.testing.broker import TestBroker
 from faststream.exceptions import SubscriberNotFound
 from faststream.kafka import TopicPartition
@@ -245,7 +245,7 @@ def build_message(
         value=msg,
         topic=topic,
         partition=partition or 0,
-        timestamp=timestamp_ms or int(datetime.now(timezone.utc).timestamp() * 1000),
+        timestamp=timestamp_ms or int(datetime.now(timezone.utc).timestamp()),
         timestamp_type=0,
         key=k,
         serialized_key_size=len(k),

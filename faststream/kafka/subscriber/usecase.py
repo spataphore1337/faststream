@@ -8,9 +8,9 @@ from aiokafka import ConsumerRecord, TopicPartition
 from aiokafka.errors import ConsumerStoppedError, KafkaError
 from typing_extensions import override
 
-from faststream._internal.subscriber.mixins import ConcurrentMixin, TasksMixin
-from faststream._internal.subscriber.usecase import SubscriberUsecase
-from faststream._internal.subscriber.utils import process_msg
+from faststream._internal.endpoint.subscriber.mixins import ConcurrentMixin, TasksMixin
+from faststream._internal.endpoint.subscriber.usecase import SubscriberUsecase
+from faststream._internal.endpoint.utils import process_msg
 from faststream._internal.types import (
     CustomCallable,
     MsgType,
@@ -20,15 +20,15 @@ from faststream.kafka.listener import make_logging_listener
 from faststream.kafka.message import KafkaAckableMessage, KafkaMessage, KafkaRawMessage
 from faststream.kafka.parser import AioKafkaBatchParser, AioKafkaParser
 from faststream.kafka.publisher.fake import KafkaFakePublisher
-from faststream.kafka.subscriber.configs import KafkaSubscriberBaseConfigs
 from faststream.middlewares.acknowledgement.conf import AckPolicy
 
 if TYPE_CHECKING:
     from aiokafka import AIOKafkaConsumer
 
     from faststream._internal.basic_types import AnyDict
-    from faststream._internal.publisher.proto import BasePublisherProto
+    from faststream._internal.endpoint.publisher import BasePublisherProto
     from faststream._internal.state import BrokerState, Pointer
+    from faststream.kafka.configs import KafkaSubscriberConfig
     from faststream.message import StreamMessage
 
 
@@ -45,16 +45,16 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[MsgType]):
     batch: bool
     parser: AioKafkaParser
 
-    def __init__(self, base_configs: KafkaSubscriberBaseConfigs) -> None:
-        super().__init__(configs=base_configs)
+    def __init__(self, config: "KafkaSubscriberConfig", /) -> None:
+        super().__init__(config)
 
-        self.topics = base_configs.topics
-        self.partitions = base_configs.partitions
-        self.group_id = base_configs.group_id
+        self.topics = config.topics
+        self.partitions = config.partitions
+        self.group_id = config.group_id
 
-        self._pattern = base_configs.pattern
-        self._listener = base_configs.listener
-        self._connection_args = base_configs.connection_args
+        self._pattern = config.pattern
+        self._listener = config.listener
+        self._connection_args = config.connection_args
 
         # Setup it later
         self.client_id = ""
@@ -253,27 +253,27 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[MsgType]):
 
 
 class DefaultSubscriber(LogicSubscriber["ConsumerRecord"]):
-    def __init__(self, base_configs: KafkaSubscriberBaseConfigs) -> None:
-        if base_configs.pattern:
+    def __init__(self, config: "KafkaSubscriberConfig", /) -> None:
+        if config.pattern:
             reg, pattern = compile_path(
-                base_configs.pattern,
+                config.pattern,
                 replace_symbol=".*",
                 patch_regex=lambda x: x.replace(r"\*", ".*"),
             )
-            base_configs.pattern = pattern
+            config.pattern = pattern
 
         else:
             reg = None
 
         self.parser = AioKafkaParser(
             msg_class=KafkaMessage
-            if base_configs.ack_policy is base_configs.ack_policy.ACK_FIRST
+            if config.ack_policy is config.ack_policy.ACK_FIRST
             else KafkaAckableMessage,
             regex=reg,
         )
-        base_configs.default_parser = self.parser.parse_message
-        base_configs.default_decoder = self.parser.decode_message
-        super().__init__(base_configs=base_configs)
+        config.default_parser = self.parser.parse_message
+        config.default_decoder = self.parser.decode_message
+        super().__init__(config)
 
     async def get_msg(self, consumer: "AIOKafkaConsumer") -> "ConsumerRecord":
         assert consumer, "You should setup subscriber at first."  # nosec B101
@@ -298,33 +298,35 @@ class DefaultSubscriber(LogicSubscriber["ConsumerRecord"]):
 class BatchSubscriber(LogicSubscriber[tuple["ConsumerRecord", ...]]):
     def __init__(
         self,
-        base_configs: KafkaSubscriberBaseConfigs,
+        config: "KafkaSubscriberConfig",
+        /,
+        *,
         batch_timeout_ms: int,
         max_records: Optional[int],
     ) -> None:
-        self.batch_timeout_ms = batch_timeout_ms
-        self.max_records = max_records
-
-        if base_configs.pattern:
+        if config.pattern:
             reg, pattern = compile_path(
-                base_configs.pattern,
+                config.pattern,
                 replace_symbol=".*",
                 patch_regex=lambda x: x.replace(r"\*", ".*"),
             )
-            base_configs.pattern = pattern
+            config.pattern = pattern
 
         else:
             reg = None
 
         self.parser = AioKafkaBatchParser(
             msg_class=KafkaMessage
-            if base_configs.ack_policy is AckPolicy.ACK_FIRST
+            if config.ack_policy is AckPolicy.ACK_FIRST
             else KafkaAckableMessage,
             regex=reg,
         )
-        base_configs.default_decoder = self.parser.decode_message
-        base_configs.default_parser = self.parser.parse_message
-        super().__init__(base_configs=base_configs)
+        config.default_decoder = self.parser.decode_message
+        config.default_parser = self.parser.parse_message
+        super().__init__(config)
+
+        self.batch_timeout_ms = batch_timeout_ms
+        self.max_records = max_records
 
     async def get_msg(
         self, consumer: "AIOKafkaConsumer"
@@ -372,12 +374,12 @@ class ConcurrentBetweenPartitionsSubscriber(DefaultSubscriber):
 
     def __init__(
         self,
-        base_configs: KafkaSubscriberBaseConfigs,
-        max_workers: int
+        config: "KafkaSubscriberConfig",
+        /,
+        *,
+        max_workers: int,
     ) -> None:
-        super().__init__(
-            base_configs=base_configs
-        )
+        super().__init__(config)
 
         self.max_workers = max_workers
         self.consumer_subgroup = []

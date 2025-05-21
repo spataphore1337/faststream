@@ -8,11 +8,8 @@ from typing import (
 from nats.errors import ConnectionClosedError, TimeoutError
 from typing_extensions import Doc, override
 
-from faststream._internal.subscriber.utils import process_msg
-from faststream.nats.parser import (
-    JsParser,
-)
-from faststream.nats.subscriber.configs import NatsSubscriberBaseConfigs
+from faststream._internal.endpoint.utils import process_msg
+from faststream.nats.parser import JsParser
 
 from .basic import DefaultSubscriber
 
@@ -21,6 +18,7 @@ if TYPE_CHECKING:
     from nats.js import JetStreamContext
 
     from faststream.message import StreamMessage
+    from faststream.nats.configs import NatsSubscriberConfig
     from faststream.nats.message import NatsMessage
     from faststream.nats.schemas import JStream
 
@@ -30,18 +28,18 @@ class StreamSubscriber(DefaultSubscriber["Msg"]):
 
     def __init__(
         self,
+        config: "NatsSubscriberConfig",
         *,
         stream: "JStream",
         queue: str,
-        base_configs: NatsSubscriberBaseConfigs,
     ) -> None:
-        parser_ = JsParser(pattern=base_configs.subject)
+        parser_ = JsParser(pattern=config.subject)
+        config.default_decoder = parser_.decode_message
+        config.default_parser = parser_.parse_message
+        super().__init__(config)
 
         self.queue = queue
         self.stream = stream
-        base_configs.default_decoder = parser_.decode_message
-        base_configs.default_parser = parser_.parse_message
-        super().__init__(base_configs=base_configs)
 
     def get_log_context(
         self,

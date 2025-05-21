@@ -1,14 +1,14 @@
 from abc import abstractmethod
 from collections.abc import Iterable
 from copy import deepcopy
-from typing import TYPE_CHECKING, Annotated, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
-from typing_extensions import Doc, override
+from typing_extensions import override
 
-from faststream._internal.publisher.usecase import PublisherUsecase
+from faststream._internal.endpoint.publisher import PublisherUsecase
 from faststream.message import gen_cor_id
+from faststream.redis.configs import RedisPublisherConfig
 from faststream.redis.message import UnifyRedisDict
-from faststream.redis.publisher.configs import RedisPublisherBaseConfigs
 from faststream.redis.response import RedisPublishCommand
 from faststream.response.publish_type import PublishType
 
@@ -26,11 +26,11 @@ class LogicPublisher(PublisherUsecase[UnifyRedisDict]):
 
     _producer: "RedisFastProducer"
 
-    def __init__(self, *, base_configs: RedisPublisherBaseConfigs) -> None:
-        super().__init__(publisher_configs=base_configs)
+    def __init__(self, config: "RedisPublisherConfig", /) -> None:
+        super().__init__(config)
 
-        self.reply_to = base_configs.reply_to
-        self.headers = base_configs.headers or {}
+        self.reply_to = config.reply_to
+        self.headers = config.headers or {}
 
     @abstractmethod
     def subscriber_property(self, *, name_only: bool) -> "AnyDict":
@@ -39,9 +39,13 @@ class LogicPublisher(PublisherUsecase[UnifyRedisDict]):
 
 class ChannelPublisher(LogicPublisher):
     def __init__(
-        self, *, channel: "PubSub", base_configs: RedisPublisherBaseConfigs
+        self,
+        config: "RedisPublisherConfig",
+        /,
+        *,
+        channel: "PubSub",
     ) -> None:
-        super().__init__(base_configs=base_configs)
+        super().__init__(config)
 
         self.channel = channel
 
@@ -61,29 +65,11 @@ class ChannelPublisher(LogicPublisher):
     @override
     async def publish(
         self,
-        message: Annotated[
-            "SendableMessage",
-            Doc("Message body to send."),
-        ] = None,
-        channel: Annotated[
-            Optional[str],
-            Doc("Redis PubSub object name to send message."),
-        ] = None,
-        reply_to: Annotated[
-            str,
-            Doc("Reply message destination PubSub object name."),
-        ] = "",
-        headers: Annotated[
-            Optional["AnyDict"],
-            Doc("Message headers to store metainformation."),
-        ] = None,
-        correlation_id: Annotated[
-            Optional[str],
-            Doc(
-                "Manual message **correlation_id** setter. "
-                "**correlation_id** is a useful option to trace messages.",
-            ),
-        ] = None,
+        message: "SendableMessage" = None,
+        channel: Optional[str] = None,
+        reply_to: str = "",
+        headers: Optional["AnyDict"] = None,
+        correlation_id: Optional[str] = None,
     ) -> int:
         cmd = RedisPublishCommand(
             message,
@@ -115,30 +101,12 @@ class ChannelPublisher(LogicPublisher):
     @override
     async def request(
         self,
-        message: Annotated[
-            "SendableMessage",
-            Doc("Message body to send."),
-        ] = None,
-        channel: Annotated[
-            Optional[str],
-            Doc("Redis PubSub object name to send message."),
-        ] = None,
+        message: "SendableMessage" = None,
+        channel: Optional[str] = None,
         *,
-        correlation_id: Annotated[
-            Optional[str],
-            Doc(
-                "Manual message **correlation_id** setter. "
-                "**correlation_id** is a useful option to trace messages.",
-            ),
-        ] = None,
-        headers: Annotated[
-            Optional["AnyDict"],
-            Doc("Message headers to store metainformation."),
-        ] = None,
-        timeout: Annotated[
-            Optional[float],
-            Doc("RPC reply waiting time."),
-        ] = 30.0,
+        correlation_id: Optional[str] = None,
+        headers: Optional["AnyDict"] = None,
+        timeout: Optional[float] = 30.0,
     ) -> "RedisMessage":
         cmd = RedisPublishCommand(
             message,
@@ -155,9 +123,13 @@ class ChannelPublisher(LogicPublisher):
 
 class ListPublisher(LogicPublisher):
     def __init__(
-        self, *, list: "ListSub", base_configs: RedisPublisherBaseConfigs
+        self,
+        config: "RedisPublisherConfig",
+        /,
+        *,
+        list: "ListSub",
     ) -> None:
-        super().__init__(base_configs=base_configs)
+        super().__init__(config)
 
         self.list = list
 
@@ -177,29 +149,11 @@ class ListPublisher(LogicPublisher):
     @override
     async def publish(
         self,
-        message: Annotated[
-            "SendableMessage",
-            Doc("Message body to send."),
-        ] = None,
-        list: Annotated[
-            Optional[str],
-            Doc("Redis List object name to send message."),
-        ] = None,
-        reply_to: Annotated[
-            str,
-            Doc("Reply message destination PubSub object name."),
-        ] = "",
-        headers: Annotated[
-            Optional["AnyDict"],
-            Doc("Message headers to store metainformation."),
-        ] = None,
-        correlation_id: Annotated[
-            Optional[str],
-            Doc(
-                "Manual message **correlation_id** setter. "
-                "**correlation_id** is a useful option to trace messages.",
-            ),
-        ] = None,
+        message: "SendableMessage" = None,
+        list: Optional[str] = None,
+        reply_to: str = "",
+        headers: Optional["AnyDict"] = None,
+        correlation_id: Optional[str] = None,
     ) -> int:
         cmd = RedisPublishCommand(
             message,
@@ -232,30 +186,12 @@ class ListPublisher(LogicPublisher):
     @override
     async def request(
         self,
-        message: Annotated[
-            "SendableMessage",
-            Doc("Message body to send."),
-        ] = None,
-        list: Annotated[
-            Optional[str],
-            Doc("Redis List object name to send message."),
-        ] = None,
+        message: "SendableMessage" = None,
+        list: Optional[str] = None,
         *,
-        correlation_id: Annotated[
-            Optional[str],
-            Doc(
-                "Manual message **correlation_id** setter. "
-                "**correlation_id** is a useful option to trace messages.",
-            ),
-        ] = None,
-        headers: Annotated[
-            Optional["AnyDict"],
-            Doc("Message headers to store metainformation."),
-        ] = None,
-        timeout: Annotated[
-            Optional[float],
-            Doc("RPC reply waiting time."),
-        ] = 30.0,
+        correlation_id: Optional[str] = None,
+        headers: Optional["AnyDict"] = None,
+        timeout: Optional[float] = 30.0,
     ) -> "RedisMessage":
         cmd = RedisPublishCommand(
             message,
@@ -274,29 +210,11 @@ class ListBatchPublisher(ListPublisher):
     @override
     async def publish(  # type: ignore[override]
         self,
-        *messages: Annotated[
-            "SendableMessage",
-            Doc("Messages bodies to send."),
-        ],
-        list: Annotated[
-            str,
-            Doc("Redis List object name to send messages."),
-        ],
-        correlation_id: Annotated[
-            Optional[str],
-            Doc(
-                "Manual message **correlation_id** setter. "
-                "**correlation_id** is a useful option to trace messages.",
-            ),
-        ] = None,
-        reply_to: Annotated[
-            str,
-            Doc("Reply message destination PubSub object name."),
-        ] = "",
-        headers: Annotated[
-            Optional["AnyDict"],
-            Doc("Message headers to store metainformation."),
-        ] = None,
+        *messages: "SendableMessage",
+        list: str,
+        correlation_id: Optional[str] = None,
+        reply_to: str = "",
+        headers: Optional["AnyDict"] = None,
     ) -> int:
         cmd = RedisPublishCommand(
             *messages,
@@ -329,9 +247,13 @@ class ListBatchPublisher(ListPublisher):
 
 class StreamPublisher(LogicPublisher):
     def __init__(
-        self, *, stream: "StreamSub", base_configs: RedisPublisherBaseConfigs
+        self,
+        config: "RedisPublisherConfig",
+        /,
+        *,
+        stream: "StreamSub",
     ) -> None:
-        super().__init__(base_configs=base_configs)
+        super().__init__(config)
 
         self.stream = stream
 
@@ -351,37 +273,13 @@ class StreamPublisher(LogicPublisher):
     @override
     async def publish(
         self,
-        message: Annotated[
-            "SendableMessage",
-            Doc("Message body to send."),
-        ] = None,
-        stream: Annotated[
-            Optional[str],
-            Doc("Redis Stream object name to send message."),
-        ] = None,
-        reply_to: Annotated[
-            str,
-            Doc("Reply message destination PubSub object name."),
-        ] = "",
-        headers: Annotated[
-            Optional["AnyDict"],
-            Doc("Message headers to store metainformation."),
-        ] = None,
-        correlation_id: Annotated[
-            Optional[str],
-            Doc(
-                "Manual message **correlation_id** setter. "
-                "**correlation_id** is a useful option to trace messages.",
-            ),
-        ] = None,
+        message: "SendableMessage" = None,
+        stream: Optional[str] = None,
+        reply_to: str = "",
+        headers: Optional["AnyDict"] = None,
+        correlation_id: Optional[str] = None,
         *,
-        maxlen: Annotated[
-            Optional[int],
-            Doc(
-                "Redis Stream maxlen publish option. "
-                "Remove eldest message if maxlen exceeded.",
-            ),
-        ] = None,
+        maxlen: Optional[int] = None,
     ) -> bytes:
         cmd = RedisPublishCommand(
             message,
@@ -416,37 +314,13 @@ class StreamPublisher(LogicPublisher):
     @override
     async def request(
         self,
-        message: Annotated[
-            "SendableMessage",
-            Doc("Message body to send."),
-        ] = None,
-        stream: Annotated[
-            Optional[str],
-            Doc("Redis Stream object name to send message."),
-        ] = None,
+        message: "SendableMessage" = None,
+        stream: Optional[str] = None,
         *,
-        maxlen: Annotated[
-            Optional[int],
-            Doc(
-                "Redis Stream maxlen publish option. "
-                "Remove eldest message if maxlen exceeded.",
-            ),
-        ] = None,
-        correlation_id: Annotated[
-            Optional[str],
-            Doc(
-                "Manual message **correlation_id** setter. "
-                "**correlation_id** is a useful option to trace messages.",
-            ),
-        ] = None,
-        headers: Annotated[
-            Optional["AnyDict"],
-            Doc("Message headers to store metainformation."),
-        ] = None,
-        timeout: Annotated[
-            Optional[float],
-            Doc("RPC reply waiting time."),
-        ] = 30.0,
+        maxlen: Optional[int] = None,
+        correlation_id: Optional[str] = None,
+        headers: Optional["AnyDict"] = None,
+        timeout: Optional[float] = 30.0,
     ) -> "RedisMessage":
         cmd = RedisPublishCommand(
             message,

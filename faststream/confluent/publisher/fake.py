@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, Union
 
-from faststream._internal.publisher.fake import FakePublisher
+from faststream._internal.endpoint.publisher.fake import FakePublisher
 from faststream.confluent.response import KafkaPublishCommand
 
 if TYPE_CHECKING:
-    from faststream._internal.publisher.proto import ProducerProto
+    from faststream._internal.producer import ProducerProto
     from faststream.response.response import PublishCommand
 
 

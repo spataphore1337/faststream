@@ -1,12 +1,7 @@
-from faststream._internal.configs import SpecificationConfigs
-from faststream._internal.publisher.specified import (
+from faststream._internal.endpoint.publisher import (
     SpecificationPublisher as SpecificationPublisherMixin,
 )
-from faststream.rabbit.publisher.configs import (
-    RabbitPublisherBaseConfigs,
-)
-from faststream.rabbit.schemas.base import RabbitBaseConfigs
-from faststream.rabbit.schemas.proto import BaseRMQInformation as RMQSpecificationMixin
+from faststream.rabbit.schemas import BaseRMQInformation as RMQSpecificationMixin
 from faststream.rabbit.utils import is_routing_exchange
 from faststream.specification.asyncapi.utils import resolve_payloads
 from faststream.specification.schema import (
@@ -29,21 +24,6 @@ class SpecificationPublisher(
     LogicPublisher,
 ):
     """AsyncAPI-compatible Rabbit Publisher class."""
-
-    def __init__(
-        self,
-        *,
-        base_configs: RabbitPublisherBaseConfigs,
-        rmq_base_configs: RabbitBaseConfigs,
-        specification_configs: SpecificationConfigs,
-    ) -> None:
-        super().__init__(
-            specification_configs=specification_configs,
-            # propagate to RMQSpecificationMixin
-            rmq_base_configs=rmq_base_configs,
-        )
-
-        LogicPublisher.__init__(self, base_configs=base_configs)
 
     def get_default_name(self) -> str:
         routing = (

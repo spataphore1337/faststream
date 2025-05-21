@@ -1,4 +1,4 @@
-from faststream._internal.publisher.specified import (
+from faststream._internal.endpoint.publisher import (
     SpecificationPublisher as SpecificationPublisherMixin,
 )
 from faststream.nats.publisher.usecase import LogicPublisher

@@ -3,11 +3,8 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 
 from typing_extensions import TypeAlias
 
-from faststream._internal.publisher.configs import (
-    SpecificationPublisherConfigs,
-)
 from faststream.exceptions import SetupError
-from faststream.redis.publisher.configs import RedisPublisherBaseConfigs
+from faststream.redis.configs import RedisPublisherConfigFacade
 from faststream.redis.schemas import INCORRECT_SETUP_MSG, ListSub, PubSub, StreamSub
 from faststream.redis.schemas.proto import validate_options
 
@@ -49,14 +46,12 @@ def create_publisher(
 ) -> PublisherType:
     validate_options(channel=channel, list=list, stream=stream)
 
-    base_configs = RedisPublisherBaseConfigs(
+    config = RedisPublisherConfigFacade(
         reply_to=reply_to,
         headers=headers,
         broker_middlewares=broker_middlewares,
         middlewares=middlewares,
-    )
-
-    specification_configs = SpecificationPublisherConfigs(
+        # specification
         schema_=schema_,
         title_=title_,
         description_=description_,
@@ -64,30 +59,15 @@ def create_publisher(
     )
 
     if (channel := PubSub.validate(channel)) is not None:
-        return SpecificationChannelPublisher(
-            channel=channel,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
-        )
+        return SpecificationChannelPublisher(config, channel=channel)
 
     if (stream := StreamSub.validate(stream)) is not None:
-        return SpecificationStreamPublisher(
-            stream=stream,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
-        )
+        return SpecificationStreamPublisher(config, stream=stream)
 
     if (list := ListSub.validate(list)) is not None:
         if list.batch:
-            return SpecificationListBatchPublisher(
-                list=list,
-                base_configs=base_configs,
-                specification_configs=specification_configs,
-            )
-        return SpecificationListPublisher(
-            list=list,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
-        )
+            return SpecificationListBatchPublisher(config, list=list)
+
+        return SpecificationListPublisher(config, list=list)
 
     raise SetupError(INCORRECT_SETUP_MSG)

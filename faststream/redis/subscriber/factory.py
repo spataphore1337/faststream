@@ -5,14 +5,11 @@ from typing import TYPE_CHECKING, Optional, Union
 from typing_extensions import TypeAlias
 
 from faststream._internal.constants import EMPTY
-from faststream._internal.subscriber.configs import (
-    SpecificationSubscriberConfigs,
-)
 from faststream.exceptions import SetupError
 from faststream.middlewares import AckPolicy
+from faststream.redis.configs import RedisSubscriberConfigFacade
 from faststream.redis.schemas import INCORRECT_SETUP_MSG, ListSub, PubSub, StreamSub
 from faststream.redis.schemas.proto import validate_options
-from faststream.redis.subscriber.configs import RedisSubscriberBaseConfigs
 from faststream.redis.subscriber.specified import (
     SpecificationChannelConcurrentSubscriber,
     SpecificationChannelSubscriber,
@@ -68,17 +65,15 @@ def create_subscriber(
         max_workers=max_workers,
     )
 
-    base_configs = RedisSubscriberBaseConfigs(
+    config = RedisSubscriberConfigFacade(
         no_reply=no_reply,
         broker_dependencies=broker_dependencies,
         broker_middlewares=broker_middlewares,
-        ack_policy=ack_policy,
+        _ack_policy=ack_policy,
         default_parser=EMPTY,
         default_decoder=EMPTY,
         no_ack=no_ack,
-    )
-
-    specification_configs = SpecificationSubscriberConfigs(
+        # specification
         title_=title_,
         description_=description_,
         include_in_schema=include_in_schema,
@@ -87,56 +82,38 @@ def create_subscriber(
     if (channel_sub := PubSub.validate(channel)) is not None:
         if max_workers > 1:
             return SpecificationChannelConcurrentSubscriber(
+                config,
                 channel=channel_sub,
                 max_workers=max_workers,
-                base_configs=base_configs,
-                specification_configs=specification_configs,
             )
-        return SpecificationChannelSubscriber(
-            channel=channel_sub,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
-        )
+
+        return SpecificationChannelSubscriber(config, channel=channel_sub)
 
     if (stream_sub := StreamSub.validate(stream)) is not None:
         if stream_sub.batch:
-            return SpecificationStreamBatchSubscriber(
-                stream=stream_sub,
-                base_configs=base_configs,
-                specification_configs=specification_configs,
-            )
+            return SpecificationStreamBatchSubscriber(config, stream=stream_sub)
+
         if max_workers > 1:
             return SpecificationStreamConcurrentSubscriber(
+                config,
                 stream=stream_sub,
                 max_workers=max_workers,
-                base_configs=base_configs,
-                specification_configs=specification_configs,
             )
-        return SpecificationStreamSubscriber(
-            stream=stream_sub,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
-        )
+
+        return SpecificationStreamSubscriber(config, stream=stream_sub)
 
     if (list_sub := ListSub.validate(list)) is not None:
         if list_sub.batch:
-            return SpecificationListBatchSubscriber(
-                list=list_sub,
-                base_configs=base_configs,
-                specification_configs=specification_configs,
-            )
+            return SpecificationListBatchSubscriber(config, list=list_sub)
+
         if max_workers > 1:
             return SpecificationListConcurrentSubscriber(
+                config,
                 list=list_sub,
                 max_workers=max_workers,
-                base_configs=base_configs,
-                specification_configs=specification_configs,
             )
-        return SpecificationListSubscriber(
-            list=list_sub,
-            base_configs=base_configs,
-            specification_configs=specification_configs,
-        )
+
+        return SpecificationListSubscriber(config, list=list_sub)
 
     raise SetupError(INCORRECT_SETUP_MSG)
 

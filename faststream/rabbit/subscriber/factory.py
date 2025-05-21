@@ -3,13 +3,9 @@ from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Optional
 
 from faststream._internal.constants import EMPTY
-from faststream._internal.subscriber.configs import (
-    SpecificationSubscriberConfigs,
-)
 from faststream.exceptions import SetupError
-from faststream.rabbit.schemas.base import RabbitBaseConfigs
-from faststream.rabbit.subscriber.configs import (
-    RabbitSubscriberBaseConfigs,
+from faststream.rabbit.configs import (
+    RabbitSubscriberConfigFacade,
 )
 from faststream.rabbit.subscriber.specified import SpecificationSubscriber
 
@@ -46,32 +42,26 @@ def create_subscriber(
 ) -> SpecificationSubscriber:
     _validate_input_for_misconfigure(ack_policy=ack_policy, no_ack=no_ack)
 
-    base_configs = RabbitSubscriberBaseConfigs(
-        ack_policy=ack_policy,
+    config = RabbitSubscriberConfigFacade(
+        _ack_policy=ack_policy,
+        _no_ack=no_ack,
         no_reply=no_reply,
         broker_dependencies=broker_dependencies,
         broker_middlewares=broker_middlewares,
         default_decoder=EMPTY,
         default_parser=EMPTY,
         consume_args=consume_args,
-        queue=queue,
         channel=channel,
-        exchange=exchange
-    )
-
-    specification_configs = SpecificationSubscriberConfigs(
+        # rmq
+        queue=queue,
+        exchange=exchange,
+        # specification
         title_=title_,
         description_=description_,
         include_in_schema=include_in_schema,
     )
 
-    rmq_base_configs = RabbitBaseConfigs(queue=queue, exchange=exchange)
-
-    return SpecificationSubscriber(
-        base_configs=base_configs,
-        specification_configs=specification_configs,
-        rmq_base_configs=rmq_base_configs,
-    )
+    return SpecificationSubscriber(config)
 
 
 def _validate_input_for_misconfigure(
@@ -81,7 +71,7 @@ def _validate_input_for_misconfigure(
 ) -> None:
     if no_ack is not EMPTY:
         warnings.warn(
-            "`no_ack` option was deprecated in prior to `ack_policy=AckPolicy.DO_NOTHING`. Scheduled to remove in 0.7.0",
+            "`no_ack` option was deprecated in prior to `ack_policy=AckPolicy.ACK_FIRST`. Scheduled to remove in 0.7.0",
             category=DeprecationWarning,
             stacklevel=4,
         )

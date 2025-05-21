@@ -9,10 +9,7 @@ from typing import (
     cast,
 )
 
-from faststream._internal.publisher.configs import (
-    SpecificationPublisherConfigs,
-)
-from faststream.confluent.publisher.configs import ConfluentPublisherBaseConfigs
+from faststream.confluent.configs import KafkaPublisherConfigFacade
 from faststream.exceptions import SetupError
 
 from .specified import SpecificationBatchPublisher, SpecificationDefaultPublisher
@@ -47,7 +44,7 @@ def create_publisher(
     "SpecificationBatchPublisher",
     "SpecificationDefaultPublisher",
 ]:
-    base_configs = ConfluentPublisherBaseConfigs(
+    config = KafkaPublisherConfigFacade(
         key=key,
         topic=topic,
         partition=partition,
@@ -58,8 +55,7 @@ def create_publisher(
             broker_middlewares,
         ),
         middlewares=middlewares,
-    )
-    specification_configs = SpecificationPublisherConfigs(
+        # specification
         schema_=schema_,
         title_=title_,
         description_=description_,
@@ -74,17 +70,11 @@ def create_publisher(
         publisher: Union[
             SpecificationBatchPublisher,
             SpecificationDefaultPublisher,
-        ] = SpecificationBatchPublisher(
-            specification_configs=specification_configs,
-            base_configs=base_configs
-        )
+        ] = SpecificationBatchPublisher(config)
         publish_method = "_basic_publish_batch"
 
     else:
-        publisher = SpecificationDefaultPublisher(
-            specification_configs=specification_configs,
-            base_configs=base_configs
-        )
+        publisher = SpecificationDefaultPublisher(config)
         publish_method = "_basic_publish"
 
     if autoflush:

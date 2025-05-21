@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 import anyio
 from typing_extensions import override
 
-from faststream._internal.subscriber.utils import resolve_custom_func
+from faststream._internal.endpoint.utils import resolve_custom_func
 from faststream._internal.testing.broker import TestBroker
 from faststream.confluent.broker import KafkaBroker
 from faststream.confluent.parser import AsyncConfluentParser
@@ -296,8 +296,8 @@ def build_message(
         headers=[(i, j.encode()) for i, j in headers.items()],
         offset=0,
         partition=partition or 0,
-        timestamp_type=1,
-        timestamp_ms=timestamp_ms or int(datetime.now(timezone.utc).timestamp() * 1000),
+        timestamp_type=0 + 1,
+        timestamp_ms=timestamp_ms or int(datetime.now(timezone.utc).timestamp()),
     )
 
 

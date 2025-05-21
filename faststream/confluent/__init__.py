@@ -9,6 +9,9 @@ try:
     from .testing import TestKafkaBroker
 
 except ImportError as e:
+    if "'confluent_kafka'" not in e.msg:
+        raise
+
     from faststream.exceptions import INSTALL_FASTSTREAM_CONFLUENT
 
     raise ImportError(INSTALL_FASTSTREAM_CONFLUENT) from e

@@ -18,9 +18,7 @@ RELOAD_FLAG = typer.Option(
 APP_DIR_OPTION = typer.Option(
     ".",
     "--app-dir",
-    help=(
-        "Look for APP in the specified directory, by adding this to the PYTHONPATH."
-    ),
+    help=("Look for APP in the specified directory, by adding this to the PYTHONPATH."),
     envvar="FASTSTREAM_APP_DIR",
 )
 

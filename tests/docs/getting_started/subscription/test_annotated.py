@@ -5,7 +5,7 @@ from fast_depends.exceptions import ValidationError
 from typing_extensions import TypeAlias
 
 from faststream._internal.broker.broker import BrokerUsecase
-from faststream._internal.subscriber.usecase import SubscriberUsecase
+from faststream._internal.endpoint.subscriber import SubscriberUsecase
 from faststream._internal.testing.broker import TestBroker
 from tests.marks import (
     python39,

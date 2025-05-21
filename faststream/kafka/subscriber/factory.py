@@ -3,11 +3,8 @@ from collections.abc import Collection, Iterable
 from typing import TYPE_CHECKING, Optional, Union
 
 from faststream._internal.constants import EMPTY
-from faststream._internal.subscriber.configs import (
-    SpecificationSubscriberConfigs,
-)
 from faststream.exceptions import SetupError
-from faststream.kafka.subscriber.configs import KafkaSubscriberBaseConfigs
+from faststream.kafka.configs import KafkaSubscriberConfigFacade
 from faststream.kafka.subscriber.specified import (
     SpecificationBatchSubscriber,
     SpecificationConcurrentBetweenPartitionsSubscriber,
@@ -66,24 +63,22 @@ def create_subscriber(
         max_workers=max_workers,
     )
 
-    base_configs = KafkaSubscriberBaseConfigs(
+    config = KafkaSubscriberConfigFacade(
         topics=topics,
         partitions=partitions,
         connection_args=connection_args,
         group_id=group_id,
         listener=listener,
         pattern=pattern,
-        ack_policy=ack_policy,
         no_reply=no_reply,
         broker_dependencies=broker_dependencies,
         broker_middlewares=broker_middlewares,
         default_decoder=EMPTY,
         default_parser=EMPTY,
-        no_ack=no_ack,
         auto_commit=auto_commit,
-    )
-
-    specification_configs = SpecificationSubscriberConfigs(
+        no_ack=no_ack,
+        _ack_policy=ack_policy,
+        # specification
         title_=title_,
         description_=description_,
         include_in_schema=include_in_schema,
@@ -91,30 +86,25 @@ def create_subscriber(
 
     if batch:
         return SpecificationBatchSubscriber(
-            specification_configs=specification_configs,
-            base_configs=base_configs,
+            config,
             batch_timeout_ms=batch_timeout_ms,
             max_records=max_records,
         )
 
     if max_workers > 1:
-        if base_configs.ack_first:
+        if config.ack_first:
             return SpecificationConcurrentDefaultSubscriber(
-                specification_configs=specification_configs,
-                base_configs=base_configs,
+                config,
                 max_workers=max_workers,
             )
-        base_configs.topics = (topics[0],)
+
+        config.topics = (topics[0],)
         return SpecificationConcurrentBetweenPartitionsSubscriber(
-            specification_configs=specification_configs,
-            base_configs=base_configs,
+            config,
             max_workers=max_workers,
         )
 
-    return SpecificationDefaultSubscriber(
-        specification_configs=specification_configs,
-        base_configs=base_configs
-    )
+    return SpecificationDefaultSubscriber(config)
 
 
 def _validate_input_for_misconfigure(

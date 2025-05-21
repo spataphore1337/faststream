@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any, Optional
 
-from faststream._internal.publisher.proto import ProducerProto
+from faststream._internal.producer import ProducerProto
 from faststream.exceptions import IncorrectState
 
 if TYPE_CHECKING:

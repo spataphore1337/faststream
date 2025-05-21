@@ -3,14 +3,14 @@ from collections.abc import Sequence
 from functools import partial
 from typing import TYPE_CHECKING, Any, Generic
 
-from faststream._internal.subscriber.utils import process_msg
+from faststream._internal.endpoint.utils import process_msg
 from faststream._internal.types import MsgType
 from faststream.message.source_type import SourceType
 
 if TYPE_CHECKING:
     from faststream._internal.basic_types import SendableMessage
     from faststream._internal.context import ContextRepo
-    from faststream._internal.publisher.proto import ProducerProto
+    from faststream._internal.producer import ProducerProto
     from faststream._internal.types import BrokerMiddleware
     from faststream.response import PublishCommand
 

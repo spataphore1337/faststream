@@ -4,9 +4,8 @@ from typing import TYPE_CHECKING, Optional, Union
 from confluent_kafka import Message
 from typing_extensions import override
 
-from faststream._internal.publisher.usecase import PublisherUsecase
+from faststream._internal.endpoint.publisher import PublisherUsecase
 from faststream._internal.types import MsgType
-from faststream.confluent.publisher.configs import ConfluentPublisherBaseConfigs
 from faststream.confluent.response import KafkaPublishCommand
 from faststream.exceptions import NOT_CONNECTED_YET
 from faststream.message import gen_cor_id
@@ -17,6 +16,7 @@ if TYPE_CHECKING:
 
     from faststream._internal.basic_types import SendableMessage
     from faststream._internal.types import PublisherMiddleware
+    from faststream.confluent.configs import KafkaSubscriberConfig
     from faststream.confluent.message import KafkaMessage
     from faststream.confluent.publisher.producer import AsyncConfluentFastProducer
     from faststream.response.response import PublishCommand
@@ -27,13 +27,13 @@ class LogicPublisher(PublisherUsecase[MsgType]):
 
     _producer: "AsyncConfluentFastProducer"
 
-    def __init__(self, *, base_configs: ConfluentPublisherBaseConfigs) -> None:
-        super().__init__(publisher_configs=base_configs)
+    def __init__(self, config: "KafkaSubscriberConfig", /) -> None:
+        super().__init__(config)
 
-        self.topic = base_configs.topic
-        self.partition = base_configs.partition
-        self.reply_to = base_configs.reply_to
-        self.headers = base_configs.headers or {}
+        self.topic = config.topic
+        self.partition = config.partition
+        self.reply_to = config.reply_to
+        self.headers = config.headers or {}
 
     def add_prefix(self, prefix: str) -> None:
         self.topic = f"{prefix}{self.topic}"
@@ -72,10 +72,10 @@ class LogicPublisher(PublisherUsecase[MsgType]):
 
 
 class DefaultPublisher(LogicPublisher[Message]):
-    def __init__(self, *, base_configs: ConfluentPublisherBaseConfigs) -> None:
-        super().__init__(base_configs=base_configs)
+    def __init__(self, config: "KafkaSubscriberConfig", /) -> None:
+        super().__init__(config)
 
-        self.key = base_configs.key
+        self.key = config.key
 
     @override
     async def publish(

@@ -6,23 +6,21 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 import anyio
 from typing_extensions import override
 
-from faststream._internal.subscriber.usecase import SubscriberUsecase
-from faststream._internal.subscriber.utils import process_msg
+from faststream._internal.endpoint.subscriber.usecase import SubscriberUsecase
+from faststream._internal.endpoint.utils import process_msg
 from faststream.exceptions import SetupError
 from faststream.rabbit.parser import AioPikaParser
 from faststream.rabbit.publisher.fake import RabbitFakePublisher
-from faststream.rabbit.subscriber.configs import (
-    RabbitSubscriberBaseConfigs,
-)
 
 if TYPE_CHECKING:
     from aio_pika import IncomingMessage, RobustQueue
 
     from faststream._internal.basic_types import AnyDict
-    from faststream._internal.publisher.proto import BasePublisherProto
+    from faststream._internal.endpoint.publisher import BasePublisherProto
     from faststream._internal.state import BrokerState
     from faststream._internal.types import CustomCallable
     from faststream.message import StreamMessage
+    from faststream.rabbit.configs import RabbitSubscriberConfig
     from faststream.rabbit.helpers import RabbitDeclarer
     from faststream.rabbit.message import RabbitMessage
     from faststream.rabbit.publisher.producer import AioPikaFastProducer
@@ -44,24 +42,24 @@ class LogicSubscriber(SubscriberUsecase["IncomingMessage"]):
 
     def __init__(
         self,
-        *,
-        base_configs: RabbitSubscriberBaseConfigs,
+        config: "RabbitSubscriberConfig",
+        /
     ) -> None:
-        self.queue = base_configs.queue
-        self.exchange = base_configs.exchange
+        parser = AioPikaParser(pattern=config.queue.path_regex)
+        config.default_decoder = parser.decode_message
+        config.default_parser = parser.parse_message
+        super().__init__(config)
 
-        parser = AioPikaParser(pattern=base_configs.queue.path_regex)
-        base_configs.default_decoder = parser.decode_message
-        base_configs.default_parser = parser.parse_message
-        super().__init__(configs=base_configs)
+        self.queue = config.queue
+        self.exchange = config.exchange
 
-        self.consume_args = base_configs.consume_args or {}
+        self.consume_args = config.consume_args or {}
 
-        self.__no_ack = base_configs.no_ack
+        self.__no_ack = config.no_ack
 
         self._consumer_tag = None
         self._queue_obj = None
-        self.channel = base_configs.channel
+        self.channel = config.channel
 
         # Setup it later
         self.declarer = None
@@ -96,7 +94,8 @@ class LogicSubscriber(SubscriberUsecase["IncomingMessage"]):
             raise SetupError(msg)
 
         self._queue_obj = queue = await self.declarer.declare_queue(
-            self.queue, channel=self.channel
+            self.queue,
+            channel=self.channel,
         )
 
         if (
@@ -105,7 +104,8 @@ class LogicSubscriber(SubscriberUsecase["IncomingMessage"]):
             and self.exchange.name  # check Exchange is not default
         ):
             exchange = await self.declarer.declare_exchange(
-                self.exchange, channel=self.channel
+                self.exchange,
+                channel=self.channel,
             )
 
             await queue.bind(

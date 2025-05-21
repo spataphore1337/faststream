@@ -4,11 +4,10 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal, Optional, Union, over
 from aiokafka import ConsumerRecord
 from typing_extensions import Doc, override
 
-from faststream._internal.publisher.usecase import PublisherUsecase
+from faststream._internal.endpoint.publisher import PublisherUsecase
 from faststream._internal.types import MsgType
 from faststream.exceptions import NOT_CONNECTED_YET
 from faststream.kafka.message import KafkaMessage
-from faststream.kafka.publisher.configs import KafkaPublisherBaseConfigs
 from faststream.kafka.response import KafkaPublishCommand
 from faststream.message import gen_cor_id
 from faststream.response.publish_type import PublishType
@@ -20,6 +19,7 @@ if TYPE_CHECKING:
 
     from faststream._internal.basic_types import SendableMessage
     from faststream._internal.types import PublisherMiddleware
+    from faststream.kafka.configs import KafkaPublisherConfig
     from faststream.kafka.message import KafkaMessage
     from faststream.kafka.publisher.producer import AioKafkaFastProducer
     from faststream.response.response import PublishCommand
@@ -30,13 +30,13 @@ class LogicPublisher(PublisherUsecase[MsgType]):
 
     _producer: "AioKafkaFastProducer"
 
-    def __init__(self, *, base_configs: KafkaPublisherBaseConfigs) -> None:
-        super().__init__(publisher_configs=base_configs)
+    def __init__(self, config: "KafkaPublisherConfig", /) -> None:
+        super().__init__(config)
 
-        self.topic = base_configs.topic
-        self.partition = base_configs.partition
-        self.reply_to = base_configs.reply_to
-        self.headers = base_configs.headers or {}
+        self.topic = config.topic
+        self.partition = config.partition
+        self.reply_to = config.reply_to
+        self.headers = config.headers or {}
 
     def add_prefix(self, prefix: str) -> None:
         self.topic = f"{prefix}{self.topic}"
@@ -122,10 +122,10 @@ class LogicPublisher(PublisherUsecase[MsgType]):
 
 
 class DefaultPublisher(LogicPublisher[ConsumerRecord]):
-    def __init__(self, *, base_configs: KafkaPublisherBaseConfigs) -> None:
-        super().__init__(base_configs=base_configs)
+    def __init__(self, config: "KafkaPublisherConfig", /) -> None:
+        super().__init__(config)
 
-        self.key = base_configs.key
+        self.key = config.key
 
     @overload
     async def publish(

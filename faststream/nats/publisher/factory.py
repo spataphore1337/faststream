@@ -1,10 +1,7 @@
 from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Optional
 
-from faststream._internal.publisher.configs import (
-    SpecificationPublisherConfigs,
-)
-from faststream.nats.publisher.configs import NatsPublisherBaseConfigs
+from faststream.nats.configs import NatsPublisherConfigFacade
 
 from .specified import SpecificationPublisher
 
@@ -31,7 +28,7 @@ def create_publisher(
     description_: Optional[str],
     include_in_schema: bool,
 ) -> SpecificationPublisher:
-    base_configs = NatsPublisherBaseConfigs(
+    config = NatsPublisherConfigFacade(
         subject=subject,
         stream=stream,
         reply_to=reply_to,
@@ -39,16 +36,11 @@ def create_publisher(
         timeout=timeout,
         broker_middlewares=broker_middlewares,
         middlewares=middlewares,
-    )
-
-    specification_configs = SpecificationPublisherConfigs(
+        # specification
         schema_=schema_,
         title_=title_,
         description_=description_,
         include_in_schema=include_in_schema,
     )
 
-    return SpecificationPublisher(
-        base_configs=base_configs,
-        specification_configs=specification_configs,
-    )
+    return SpecificationPublisher(config)

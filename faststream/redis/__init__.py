@@ -9,6 +9,9 @@ try:
     from .testing import TestRedisBroker
 
 except ImportError as e:
+    if "'redis'" not in e.msg:
+        raise
+
     from faststream.exceptions import INSTALL_FASTSTREAM_REDIS
 
     raise ImportError(INSTALL_FASTSTREAM_REDIS) from e

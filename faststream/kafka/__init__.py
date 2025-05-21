@@ -10,6 +10,9 @@ try:
     from .testing import TestKafkaBroker
 
 except ImportError as e:
+    if "'aiokafka'" not in e.msg:
+        raise
+
     from faststream.exceptions import INSTALL_FASTSTREAM_KAFKA
 
     raise ImportError(INSTALL_FASTSTREAM_KAFKA) from e

@@ -31,7 +31,7 @@ class SecurityTestcase:
                         })
                     })
                 }),
-                id="BaseSecurity"
+                id="BaseSecurity",
             ),
             pytest.param(
                 SASLPlaintext(
@@ -50,15 +50,15 @@ class SecurityTestcase:
                         "securitySchemes": {
                             "user-password": {"type": "userPassword"},
                         }
-                    })
+                    }),
                 }),
-                id="SASLPlaintext"
+                id="SASLPlaintext",
             ),
             pytest.param(
                 SASLScram256(
                     username="admin",
                     password="password",  # pragma: allowlist secret
-                    use_ssl=True
+                    use_ssl=True,
                 ),
                 IsPartialDict({
                     "servers": IsPartialDict({
@@ -71,15 +71,15 @@ class SecurityTestcase:
                         "securitySchemes": {
                             "scram256": {"type": "scramSha256"},
                         }
-                    })
+                    }),
                 }),
-                id="SASLScram256"
+                id="SASLScram256",
             ),
             pytest.param(
                 SASLScram512(
                     username="admin",
                     password="password",  # pragma: allowlist secret
-                    use_ssl=True
+                    use_ssl=True,
                 ),
                 IsPartialDict({
                     "servers": IsPartialDict({
@@ -92,9 +92,9 @@ class SecurityTestcase:
                         "securitySchemes": {
                             "scram512": {"type": "scramSha512"},
                         }
-                    })
+                    }),
                 }),
-                id="SASLScram512"
+                id="SASLScram512",
             ),
             pytest.param(
                 SASLOAuthBearer(use_ssl=True),
@@ -109,9 +109,9 @@ class SecurityTestcase:
                         "securitySchemes": {
                             "oauthbearer": {"type": "oauth2", "$ref": ""}
                         }
-                    })
+                    }),
                 }),
-                id="SASLOAuthBearer"
+                id="SASLOAuthBearer",
             ),
             pytest.param(
                 SASLGSSAPI(use_ssl=True),
@@ -123,16 +123,16 @@ class SecurityTestcase:
                         })
                     }),
                     "components": IsPartialDict({
-                        "securitySchemes": {
-                            "gssapi": {"type": "gssapi"}
-                        }
-                    })
+                        "securitySchemes": {"gssapi": {"type": "gssapi"}}
+                    }),
                 }),
-                id="SASLGSSAPI"
+                id="SASLGSSAPI",
             ),
-        )
+        ),
     )
-    def test_security_schema(self, security: BaseSecurity, schema: dict[str, str]) -> None:
+    def test_security_schema(
+        self, security: BaseSecurity, schema: dict[str, str]
+    ) -> None:
         broker = KafkaBroker(security=security)
         generated_schema = self.get_schema(broker)
         assert generated_schema.to_jsonable() == schema
