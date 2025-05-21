@@ -296,8 +296,8 @@ def build_message(
         headers=[(i, j.encode()) for i, j in headers.items()],
         offset=0,
         partition=partition or 0,
-        timestamp_type=0 + 1,
-        timestamp_ms=timestamp_ms or int(datetime.now(timezone.utc).timestamp()),
+        timestamp_type=1,
+        timestamp_ms=timestamp_ms or int(datetime.now(timezone.utc).timestamp() * 1000),
     )
 
 

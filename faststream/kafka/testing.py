@@ -245,7 +245,7 @@ def build_message(
         value=msg,
         topic=topic,
         partition=partition or 0,
-        timestamp=timestamp_ms or int(datetime.now(timezone.utc).timestamp()),
+        timestamp=timestamp_ms or int(datetime.now(timezone.utc).timestamp() * 1000),
         timestamp_type=0,
         key=k,
         serialized_key_size=len(k),
