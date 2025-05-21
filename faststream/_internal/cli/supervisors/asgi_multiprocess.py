@@ -1,20 +1,18 @@
 import inspect
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import Optional
 
 from faststream.asgi.app import cast_uvicorn_params
-
-if TYPE_CHECKING:
-    from faststream._internal.basic_types import SettingField
 
 
 class ASGIMultiprocess:
     def __init__(
         self,
         target: str,
-        args: tuple[str, dict[str, "SettingField"], bool, int],
+        args: tuple[str, dict[str, str], bool, Optional[Path], int],
         workers: int,
     ) -> None:
-        _, uvicorn_kwargs, is_factory, log_level = args
+        _, uvicorn_kwargs, is_factory, _, log_level = args
         self._target = target
         self._uvicorn_kwargs = cast_uvicorn_params(uvicorn_kwargs or {})
         self._workers = workers

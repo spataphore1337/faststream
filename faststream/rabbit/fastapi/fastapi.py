@@ -457,8 +457,8 @@ class RabbitRouter(StreamRouter["IncomingMessage"]):
             Union[str, RabbitExchange, None],
             Doc(
                 "RabbitMQ exchange to bind queue to. "
-                "Uses default exchange if not presented. "
-                "**FastStream** declares exchange object automatically if it is not passive (by default).",
+                "Uses default exchange if not present. "
+                "**FastStream** declares exchange object automatically if it is not passive (by default)."
             ),
         ] = None,
         *,

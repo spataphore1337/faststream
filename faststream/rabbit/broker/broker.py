@@ -363,7 +363,7 @@ class RabbitBroker(
             expiration:
                 Message expiration (lifetime) in seconds (or datetime or timedelta).
             message_id:
-                Arbitrary message id. Generated automatically if not presented.
+                Arbitrary message id. Generated automatically if not present.
             timestamp:
                 Message publish timestamp. Generated automatically if not presented.
             message_type:
@@ -447,8 +447,8 @@ class RabbitBroker(
             Will be set automatically if not specified.
             content_encoding: Message body content encoding, e.g. **gzip**.
             expiration: Message expiration (lifetime) in seconds (or datetime or timedelta).
-            message_id: Arbitrary message id. Generated automatically if not presented.
-            timestamp: Message publish timestamp. Generated automatically if not presented.
+            message_id: Arbitrary message id. Generated automatically if not present.
+            timestamp: Message publish timestamp. Generated automatically if not present.
             message_type: Application-specific message type, e.g. **orders.created**.
             user_id: Publisher connection User ID, validated if set.
             priority: The message priority (0 by default).

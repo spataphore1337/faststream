@@ -1,3 +1,4 @@
+import datetime
 from typing import TYPE_CHECKING, Optional
 
 from aio_pika import Message
@@ -96,7 +97,7 @@ class AioPikaParser:
             priority=priority,
             expiration=expiration,
             message_id=message_id,
-            timestamp=timestamp,
+            timestamp=timestamp or datetime.datetime.now(tz=datetime.timezone.utc),
             type=message_type,
             user_id=user_id,
             app_id=app_id,

@@ -109,7 +109,7 @@ class LogicPublisher(PublisherUsecase[IncomingMessage]):
             str,
             Doc(
                 "Message routing key to publish with. "
-                "Overrides `queue` option if presented.",
+                "Overrides `queue` option if present.",
             ),
         ] = "",
         # message args

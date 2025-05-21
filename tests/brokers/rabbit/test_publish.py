@@ -1,8 +1,10 @@
 import asyncio
+import datetime as dt
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import pytest
+from dirty_equals import IsNow
 
 from faststream import Context
 from faststream.rabbit import RabbitResponse
@@ -127,3 +129,35 @@ class TestPublish(RabbitTestcaseConfig, BrokerPublishTestcase):
             )
 
             assert await response.decode() == "Hi!", response
+
+    @pytest.mark.asyncio
+    async def test_default_timestamp(
+        self,
+        queue: str,
+        event: asyncio.Event,
+        mock: Mock,
+    ) -> None:
+        pub_broker = self.get_broker(apply_types=True)
+
+        @pub_broker.subscriber(queue)
+        async def handle(msg=Context("message")):
+            mock(body=msg.body, timestamp=msg.raw_message.timestamp)
+            event.set()
+
+        async with self.patch_broker(pub_broker) as br:
+            await br.start()
+
+            await asyncio.wait(
+                (
+                    asyncio.create_task(br.publish("", queue)),
+                    asyncio.create_task(event.wait()),
+                ),
+                timeout=3,
+            )
+
+            assert event.is_set()
+
+        mock.assert_called_once_with(
+            body=b"",
+            timestamp=IsNow(delta=3, tz=dt.timezone.utc),
+        )

@@ -155,7 +155,7 @@ class RabbitRegistrator(ABCBroker["IncomingMessage"]):
             str,
             Doc(
                 "Default message routing key to publish with. "
-                "Overrides `queue` option if presented.",
+                "Overrides `queue` option if present.",
             ),
         ] = "",
         mandatory: Annotated[
