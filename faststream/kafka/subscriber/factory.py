@@ -75,9 +75,10 @@ def create_subscriber(
         broker_middlewares=broker_middlewares,
         default_decoder=EMPTY,
         default_parser=EMPTY,
-        auto_commit=auto_commit,
-        no_ack=no_ack,
         _ack_policy=ack_policy,
+        # deprecated options to remove in 0.7.0
+        _auto_commit=auto_commit,
+        _no_ack=no_ack,
         # specification
         title_=title_,
         description_=description_,

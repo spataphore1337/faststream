@@ -70,14 +70,15 @@ def create_subscriber(
         polling_interval=polling_interval,
         group_id=group_id,
         connection_data=connection_data,
-        auto_commit=auto_commit,
-        no_ack=no_ack,
         broker_middlewares=broker_middlewares,
         no_reply=no_reply,
         broker_dependencies=broker_dependencies,
-        _ack_policy=ack_policy,
         default_decoder=EMPTY,
         default_parser=EMPTY,
+        _ack_policy=ack_policy,
+        # deprecated options to remove in 0.7.0
+        _auto_commit=auto_commit,
+        _no_ack=no_ack,
         # specification
         title_=title_,
         description_=description_,
@@ -85,16 +86,10 @@ def create_subscriber(
     )
 
     if batch:
-        return SpecificationBatchSubscriber(
-            config,
-            max_records=max_records,
-        )
+        return SpecificationBatchSubscriber(config, max_records=max_records)
 
     if max_workers > 1:
-        return SpecificationConcurrentDefaultSubscriber(
-            config,
-            max_workers=max_workers,
-        )
+        return SpecificationConcurrentDefaultSubscriber(config, max_workers=max_workers)
 
     return SpecificationDefaultSubscriber(config)
 

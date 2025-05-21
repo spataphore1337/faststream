@@ -55,7 +55,7 @@ class LogicSubscriber(SubscriberUsecase["IncomingMessage"]):
 
         self.consume_args = config.consume_args or {}
 
-        self.__no_ack = config.no_ack
+        self.__no_ack = config.ack_first
 
         self._consumer_tag = None
         self._queue_obj = None

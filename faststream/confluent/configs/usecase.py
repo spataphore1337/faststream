@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import (
     TYPE_CHECKING,
     Optional,
@@ -27,36 +27,39 @@ class KafkaPublisherConfig(PublisherUsecaseConfig):
 
 @dataclass
 class KafkaSubscriberConfig(SubscriberUsecaseConfig):
-    topics: Sequence[str]
-    partitions: Sequence["TopicPartition"]
-    polling_interval: float
-    group_id: Optional[str]
-    connection_data: "AnyDict"
-    auto_commit: bool
-    no_ack: bool
+    topics: Sequence[str] = field(default_factory=list)
+    partitions: Sequence["TopicPartition"] = field(default_factory=list)
+    polling_interval: float = 0.1
+    group_id: Optional[str] = None
+    connection_data: "AnyDict" = field(default_factory=dict)
+
+    _auto_commit: bool = field(default_factory=lambda: EMPTY, repr=False)
+    _no_ack: bool = field(default_factory=lambda: EMPTY, repr=False)
 
     def __post_init__(self) -> None:
-        if self._ack_policy is AckPolicy.ACK_FIRST:
+        if self.ack_first:
             self.connection_data["enable_auto_commit"] = True
 
     @property
-    def ack_policy(self) -> AckPolicy:
-        if self.auto_commit is not EMPTY:
-            return (
-                AckPolicy.ACK_FIRST if self.auto_commit else AckPolicy.REJECT_ON_ERROR
-            )
+    def ack_first(self) -> bool:
+        return self.__ack_policy is AckPolicy.ACK_FIRST
 
-        if self.no_ack is not EMPTY:
-            return AckPolicy.DO_NOTHING if self.no_ack else EMPTY
+    @property
+    def ack_policy(self) -> AckPolicy:
+        if (policy := self.__ack_policy) is AckPolicy.ACK_FIRST:
+            return AckPolicy.DO_NOTHING
+
+        return policy
+
+    @property
+    def __ack_policy(self) -> AckPolicy:
+        if self._auto_commit is not EMPTY and self._auto_commit:
+            return AckPolicy.ACK_FIRST
+
+        if self._no_ack is not EMPTY and self._no_ack:
+            return AckPolicy.DO_NOTHING
 
         if self._ack_policy is EMPTY:
             return AckPolicy.ACK_FIRST
 
-        if self._ack_policy is AckPolicy.ACK_FIRST:
-            return AckPolicy.DO_NOTHING
-
         return self._ack_policy
-
-    @ack_policy.setter
-    def ack_policy(self, policy: AckPolicy) -> None:
-        self._ack_policy = policy

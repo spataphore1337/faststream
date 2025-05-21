@@ -23,26 +23,29 @@ class RabbitSubscriberConfig(SubscriberUsecaseConfig):
     queue: "RabbitQueue"
     exchange: "RabbitExchange"
 
-    consume_args: Optional["AnyDict"]
-    channel: Optional["Channel"]
+    consume_args: Optional["AnyDict"] = None
+    channel: Optional["Channel"] = None
 
-    _no_ack: bool = field(repr=False)
+    _no_ack: bool = field(default_factory=lambda: EMPTY, repr=False)
 
     @property
-    def no_ack(self) -> bool:
-        if self._no_ack is not EMPTY:
-            return self._no_ack
-
-        return self._ack_policy is AckPolicy.ACK_FIRST
+    def ack_first(self) -> bool:
+        return self.__ack_policy is AckPolicy.ACK_FIRST
 
     @property
     def ack_policy(self) -> AckPolicy:
+        if (policy := self.__ack_policy) is AckPolicy.ACK_FIRST:
+            return AckPolicy.DO_NOTHING
+
+        return policy
+
+    @property
+    def __ack_policy(self) -> AckPolicy:
+        if self._no_ack is not EMPTY and self._no_ack:
+            return AckPolicy.DO_NOTHING
+
         if self._ack_policy is EMPTY:
             return AckPolicy.REJECT_ON_ERROR
-
-        if self._ack_policy is AckPolicy.ACK_FIRST:
-            # This case suppressed in prior to `no_ack` protocol option
-            return AckPolicy.DO_NOTHING
 
         return self._ack_policy
 

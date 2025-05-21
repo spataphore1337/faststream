@@ -133,7 +133,7 @@ def create_subscriber(
 
         else:
             # JS Push Subscriber
-            if ack_policy is AckPolicy.ACK_FIRST:
+            if ack_first or ack_policy is AckPolicy.ACK_FIRST:
                 manual_ack = False
                 ack_policy = AckPolicy.DO_NOTHING
             else:
@@ -168,9 +168,9 @@ def create_subscriber(
         broker_middlewares=broker_middlewares,
         default_decoder=EMPTY,
         default_parser=EMPTY,
-        ack_first=ack_first,
+        _ack_first=ack_first,
         _ack_policy=ack_policy,
-        no_ack=no_ack,
+        _no_ack=no_ack,
         # specification
         title_=title_,
         description_=description_,

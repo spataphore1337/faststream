@@ -18,7 +18,6 @@ from faststream._internal.types import MsgType
 from faststream.confluent.parser import AsyncConfluentParser
 from faststream.confluent.publisher.fake import KafkaFakePublisher
 from faststream.confluent.schemas import TopicPartition
-from faststream.middlewares import AckPolicy
 
 if TYPE_CHECKING:
     from faststream._internal.basic_types import AnyDict
@@ -230,9 +229,7 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[MsgType]):
 
 class DefaultSubscriber(LogicSubscriber[Message]):
     def __init__(self, config: "KafkaSubscriberConfig", /) -> None:
-        self.parser = AsyncConfluentParser(
-            is_manual=config.ack_policy is not AckPolicy.ACK_FIRST
-        )
+        self.parser = AsyncConfluentParser(is_manual=not config.ack_first)
         config.default_decoder = self.parser.decode_message
         config.default_parser = self.parser.parse_message
         super().__init__(config)
@@ -275,9 +272,7 @@ class BatchSubscriber(LogicSubscriber[tuple[Message, ...]]):
     ) -> None:
         self.max_records = max_records
 
-        self.parser = AsyncConfluentParser(
-            is_manual=config.ack_policy is not AckPolicy.ACK_FIRST
-        )
+        self.parser = AsyncConfluentParser(is_manual=not config.ack_first)
         config.default_decoder = self.parser.decode_message_batch
         config.default_parser = self.parser.parse_message_batch
         super().__init__(config)

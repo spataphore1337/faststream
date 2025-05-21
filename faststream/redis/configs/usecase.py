@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
 from faststream._internal.constants import EMPTY
@@ -8,6 +8,7 @@ from faststream.middlewares.acknowledgement.conf import AckPolicy
 
 if TYPE_CHECKING:
     from faststream._internal.basic_types import AnyDict
+    from faststream.redis.schemas import ListSub, PubSub, StreamSub
 
 
 @dataclass
@@ -18,14 +19,27 @@ class RedisPublisherConfig(PublisherUsecaseConfig):
 
 @dataclass
 class RedisSubscriberConfig(SubscriberUsecaseConfig):
-    no_ack: bool
+    list_sub: Optional["ListSub"] = field(default=None, repr=False)
+    channel_sub: Optional["PubSub"] = field(default=None, repr=False)
+    stream_sub: Optional["StreamSub"] = field(default=None, repr=False)
+
+    _no_ack: bool = field(default_factory=lambda: EMPTY, repr=False)
 
     @property
     def ack_policy(self) -> AckPolicy:
-        if self._ack_policy is EMPTY:
-            return AckPolicy.DO_NOTHING if self.no_ack else AckPolicy.REJECT_ON_ERROR
-        return self._ack_policy
+        if self._no_ack is not EMPTY and self._no_ack:
+            return AckPolicy.DO_NOTHING
 
-    @ack_policy.setter
-    def ack_policy(self, policy: AckPolicy) -> None:
-        self._ack_policy = policy
+        if self.list_sub:
+            return AckPolicy.DO_NOTHING
+
+        if self.channel_sub:
+            return AckPolicy.DO_NOTHING
+
+        if self.stream_sub and (self.stream_sub.no_ack or not self.stream_sub.group):
+            return AckPolicy.DO_NOTHING
+
+        if self._ack_policy is EMPTY:
+            return AckPolicy.REJECT_ON_ERROR
+
+        return self._ack_policy

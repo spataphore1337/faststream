@@ -66,54 +66,56 @@ def create_subscriber(
     )
 
     config = RedisSubscriberConfigFacade(
+        channel_sub=PubSub.validate(channel),
+        list_sub=ListSub.validate(list),
+        stream_sub=StreamSub.validate(stream),
         no_reply=no_reply,
         broker_dependencies=broker_dependencies,
         broker_middlewares=broker_middlewares,
-        _ack_policy=ack_policy,
         default_parser=EMPTY,
         default_decoder=EMPTY,
-        no_ack=no_ack,
+        _ack_policy=ack_policy,
+        _no_ack=no_ack,
         # specification
         title_=title_,
         description_=description_,
         include_in_schema=include_in_schema,
     )
 
-    if (channel_sub := PubSub.validate(channel)) is not None:
+    if config.channel_sub:
+        config._ack_policy = AckPolicy.DO_NOTHING
+
         if max_workers > 1:
             return SpecificationChannelConcurrentSubscriber(
                 config,
-                channel=channel_sub,
                 max_workers=max_workers,
             )
 
-        return SpecificationChannelSubscriber(config, channel=channel_sub)
+        return SpecificationChannelSubscriber(config)
 
-    if (stream_sub := StreamSub.validate(stream)) is not None:
-        if stream_sub.batch:
-            return SpecificationStreamBatchSubscriber(config, stream=stream_sub)
+    if config.stream_sub:
+        if config.stream_sub.batch:
+            return SpecificationStreamBatchSubscriber(config)
 
         if max_workers > 1:
             return SpecificationStreamConcurrentSubscriber(
                 config,
-                stream=stream_sub,
                 max_workers=max_workers,
             )
 
-        return SpecificationStreamSubscriber(config, stream=stream_sub)
+        return SpecificationStreamSubscriber(config)
 
-    if (list_sub := ListSub.validate(list)) is not None:
-        if list_sub.batch:
-            return SpecificationListBatchSubscriber(config, list=list_sub)
+    if config.list_sub:
+        if config.list_sub.batch:
+            return SpecificationListBatchSubscriber(config)
 
         if max_workers > 1:
             return SpecificationListConcurrentSubscriber(
                 config,
-                list=list_sub,
                 max_workers=max_workers,
             )
 
-        return SpecificationListSubscriber(config, list=list_sub)
+        return SpecificationListSubscriber(config)
 
     raise SetupError(INCORRECT_SETUP_MSG)
 
@@ -139,6 +141,7 @@ def _validate_input_for_misconfigure(
         if ack_policy is not EMPTY:
             msg = "You can't use deprecated `no_ack` and `ack_policy` simultaneously. Please, use `ack_policy` only."
             raise SetupError(msg)
+
     if stream and no_ack and max_workers > 1:
         msg = "Max workers not work with manual no_ack mode."
         raise SetupError(msg)

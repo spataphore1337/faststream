@@ -11,7 +11,6 @@ from typing_extensions import TypeAlias, override
 
 from faststream._internal.endpoint.subscriber.mixins import ConcurrentMixin
 from faststream._internal.endpoint.utils import process_msg
-from faststream.middlewares import AckPolicy
 from faststream.redis.message import (
     BatchListMessage,
     DefaultListMessage,
@@ -21,7 +20,6 @@ from faststream.redis.parser import (
     RedisBatchListParser,
     RedisListParser,
 )
-from faststream.redis.schemas import ListSub
 
 from .basic import LogicSubscriber
 
@@ -37,16 +35,10 @@ Offset: TypeAlias = bytes
 
 
 class _ListHandlerMixin(LogicSubscriber):
-    def __init__(
-        self,
-        config: "RedisSubscriberConfig",
-        /,
-        *,
-        list: ListSub,
-    ) -> None:
+    def __init__(self, config: "RedisSubscriberConfig", /) -> None:
         super().__init__(config)
-
-        self.list_sub = list
+        assert config.list_sub  # nosec B101
+        self.list_sub = config.list_sub
 
     def get_log_context(
         self,
@@ -165,18 +157,11 @@ class _ListHandlerMixin(LogicSubscriber):
 
 
 class ListSubscriber(_ListHandlerMixin):
-    def __init__(
-        self,
-        config: "RedisSubscriberConfig",
-        /,
-        *,
-        list: ListSub,
-    ) -> None:
+    def __init__(self, config: "RedisSubscriberConfig", /) -> None:
         parser = RedisListParser()
         config.default_parser = parser.parse_message
         config.default_decoder = parser.decode_message
-        config.ack_policy = AckPolicy.DO_NOTHING
-        super().__init__(config, list=list)
+        super().__init__(config)
 
     async def _get_msgs(self, client: "Redis[bytes]") -> None:
         raw_msg = await client.blpop(
@@ -197,18 +182,11 @@ class ListSubscriber(_ListHandlerMixin):
 
 
 class BatchListSubscriber(_ListHandlerMixin):
-    def __init__(
-        self,
-        config: "RedisSubscriberConfig",
-        /,
-        *,
-        list: ListSub,
-    ) -> None:
+    def __init__(self, config: "RedisSubscriberConfig", /) -> None:
         parser = RedisBatchListParser()
         config.default_parser = parser.parse_message
         config.default_decoder = parser.decode_message
-        config.ack_policy = AckPolicy.DO_NOTHING
-        super().__init__(config, list=list)
+        super().__init__(config)
 
     async def _get_msgs(self, client: "Redis[bytes]") -> None:
         raw_msgs = await client.lpop(

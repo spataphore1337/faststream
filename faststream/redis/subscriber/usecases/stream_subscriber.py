@@ -22,7 +22,6 @@ from faststream.redis.parser import (
     RedisBatchStreamParser,
     RedisStreamParser,
 )
-from faststream.redis.schemas import StreamSub
 
 from .basic import LogicSubscriber
 
@@ -38,17 +37,12 @@ Offset: TypeAlias = bytes
 
 
 class _StreamHandlerMixin(LogicSubscriber):
-    def __init__(
-        self,
-        config: "RedisSubscriberConfig",
-        /,
-        *,
-        stream: StreamSub,
-    ) -> None:
+    def __init__(self, config: "RedisSubscriberConfig", /) -> None:
         super().__init__(config)
 
-        self.stream_sub = stream
-        self.last_id = stream.last_id
+        assert config.stream_sub  # nosec B101
+        self.stream_sub = config.stream_sub
+        self.last_id = config.stream_sub.last_id
 
     def get_log_context(
         self,
@@ -258,17 +252,11 @@ class _StreamHandlerMixin(LogicSubscriber):
 
 
 class StreamSubscriber(_StreamHandlerMixin):
-    def __init__(
-        self,
-        config: "RedisSubscriberConfig",
-        /,
-        *,
-        stream: StreamSub,
-    ) -> None:
+    def __init__(self, config: "RedisSubscriberConfig", /) -> None:
         parser = RedisStreamParser()
         config.default_decoder = parser.decode_message
         config.default_parser = parser.parse_message
-        super().__init__(config, stream=stream)
+        super().__init__(config)
 
     async def _get_msgs(
         self,
@@ -307,17 +295,11 @@ class StreamSubscriber(_StreamHandlerMixin):
 
 
 class StreamBatchSubscriber(_StreamHandlerMixin):
-    def __init__(
-        self,
-        config: "RedisSubscriberConfig",
-        /,
-        *,
-        stream: StreamSub,
-    ) -> None:
+    def __init__(self, config: "RedisSubscriberConfig", /) -> None:
         parser = RedisBatchStreamParser()
         config.default_decoder = parser.decode_message
         config.default_parser = parser.parse_message
-        super().__init__(config, stream=stream)
+        super().__init__(config)
 
     async def _get_msgs(
         self,

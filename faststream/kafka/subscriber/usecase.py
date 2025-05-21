@@ -20,7 +20,6 @@ from faststream.kafka.listener import make_logging_listener
 from faststream.kafka.message import KafkaAckableMessage, KafkaMessage, KafkaRawMessage
 from faststream.kafka.parser import AioKafkaBatchParser, AioKafkaParser
 from faststream.kafka.publisher.fake import KafkaFakePublisher
-from faststream.middlewares.acknowledgement.conf import AckPolicy
 
 if TYPE_CHECKING:
     from aiokafka import AIOKafkaConsumer
@@ -266,9 +265,7 @@ class DefaultSubscriber(LogicSubscriber["ConsumerRecord"]):
             reg = None
 
         self.parser = AioKafkaParser(
-            msg_class=KafkaMessage
-            if config.ack_policy is config.ack_policy.ACK_FIRST
-            else KafkaAckableMessage,
+            msg_class=KafkaMessage if config.ack_first else KafkaAckableMessage,
             regex=reg,
         )
         config.default_parser = self.parser.parse_message
@@ -316,9 +313,7 @@ class BatchSubscriber(LogicSubscriber[tuple["ConsumerRecord", ...]]):
             reg = None
 
         self.parser = AioKafkaBatchParser(
-            msg_class=KafkaMessage
-            if config.ack_policy is AckPolicy.ACK_FIRST
-            else KafkaAckableMessage,
+            msg_class=KafkaMessage if config.ack_first else KafkaAckableMessage,
             regex=reg,
         )
         config.default_decoder = self.parser.decode_message

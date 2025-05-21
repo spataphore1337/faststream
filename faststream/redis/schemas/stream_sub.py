@@ -1,4 +1,3 @@
-import warnings
 from typing import Optional
 
 from faststream._internal.proto import NameRequired
@@ -35,13 +34,6 @@ class StreamSub(NameRequired):
         if (group and not consumer) or (not group and consumer):
             msg = "You should specify `group` and `consumer` both"
             raise SetupError(msg)
-
-        if group and consumer and no_ack:
-            warnings.warn(
-                message="`no_ack` has no effect with consumer group",
-                category=RuntimeWarning,
-                stacklevel=1,
-            )
 
         if last_id is None:
             last_id = "$"

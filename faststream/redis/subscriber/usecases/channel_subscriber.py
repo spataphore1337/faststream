@@ -14,7 +14,6 @@ from typing_extensions import TypeAlias, override
 
 from faststream._internal.endpoint.subscriber.mixins import ConcurrentMixin
 from faststream._internal.endpoint.utils import process_msg
-from faststream.middlewares import AckPolicy
 from faststream.redis.message import (
     PubSubMessage,
     RedisMessage,
@@ -28,7 +27,6 @@ from .basic import LogicSubscriber
 if TYPE_CHECKING:
     from faststream.message import StreamMessage as BrokerStreamMessage
     from faststream.redis.configs import RedisSubscriberConfig
-    from faststream.redis.schemas import PubSub
 
 
 TopicName: TypeAlias = bytes
@@ -38,20 +36,14 @@ Offset: TypeAlias = bytes
 class ChannelSubscriber(LogicSubscriber):
     subscription: Optional[RPubSub]
 
-    def __init__(
-        self,
-        config: "RedisSubscriberConfig",
-        /,
-        *,
-        channel: "PubSub",
-    ) -> None:
-        parser = RedisPubSubParser(pattern=channel.path_regex)
+    def __init__(self, config: "RedisSubscriberConfig", /) -> None:
+        assert config.channel_sub  # nosec B101
+        parser = RedisPubSubParser(pattern=config.channel_sub.path_regex)
         config.default_decoder = parser.decode_message
         config.default_parser = parser.parse_message
-        config.ack_policy = AckPolicy.DO_NOTHING
         super().__init__(config)
 
-        self.channel = channel
+        self.channel = config.channel_sub
         self.subscription = None
 
     def get_log_context(
