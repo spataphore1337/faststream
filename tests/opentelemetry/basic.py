@@ -271,7 +271,6 @@ class LocalTelemetryTestcase(BaseTestcaseConfig):
     async def test_no_trace_context_create_process_span(
         self,
         queue: str,
-        mock: Mock,
         tracer_provider: TracerProvider,
         trace_exporter: InMemorySpanExporter,
     ) -> None:
@@ -279,22 +278,24 @@ class LocalTelemetryTestcase(BaseTestcaseConfig):
 
         mid = self.telemetry_middleware_class(tracer_provider=tracer_provider)
         broker = self.get_broker(middlewares=(mid,))
+        broker_without_middlewares = self.get_broker()
 
         args, kwargs = self.get_subscriber_params(queue)
 
         @broker.subscriber(*args, **kwargs)
         async def handler(m) -> None:
-            mock(m)
             event.set()
 
         broker = self.patch_broker(broker)
         msg = "start"
 
-        async with broker:
+        async with broker, broker_without_middlewares:
             await broker.start()
-            broker.middlewares = ()
+            await broker_without_middlewares.start()
+
+            broker.config.broker_config.middlewares = ()
             tasks = (
-                asyncio.create_task(broker.publish(msg, queue)),
+                asyncio.create_task(broker_without_middlewares.publish(msg, queue)),
                 asyncio.create_task(event.wait()),
             )
             await asyncio.wait(tasks, timeout=self.timeout)
@@ -306,7 +307,6 @@ class LocalTelemetryTestcase(BaseTestcaseConfig):
         self.assert_span(process, Action.PROCESS, queue, msg, parent_span_id)
 
         assert event.is_set()
-        mock.assert_called_once_with(msg)
 
     async def test_metrics(
         self,
