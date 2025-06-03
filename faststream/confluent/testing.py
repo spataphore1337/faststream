@@ -41,7 +41,9 @@ class TestKafkaBroker(TestBroker[KafkaBroker]):
         fake_producer = FakeProducer(broker)
 
         with ExitStack() as es:
-            es.enter_context(change_producer(broker.config.broker_config, fake_producer))
+            es.enter_context(
+                change_producer(broker.config.broker_config, fake_producer)
+            )
             yield
 
     @staticmethod
@@ -297,8 +299,8 @@ def build_message(
         headers=[(i, j.encode()) for i, j in headers.items()],
         offset=0,
         partition=partition or 0,
-        timestamp_type=0 + 1,
-        timestamp_ms=timestamp_ms or int(datetime.now(timezone.utc).timestamp()),
+        timestamp_type=1,
+        timestamp_ms=timestamp_ms or int(datetime.now(timezone.utc).timestamp() * 1000),
     )
 
 

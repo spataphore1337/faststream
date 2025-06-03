@@ -65,8 +65,8 @@ class RabbitRegistrator(ABCBroker["IncomingMessage"]):
         """Subscribe a handler to a RabbitMQ queue.
 
         Args:
-            queue (Union[str, RabbitQueue]): RabbitMQ queue to listen. **FastStream** declares and binds queue object to `exchange` automatically if it is not passive (by default).
-            exchange (Union[str, RabbitExchange, None], optional): RabbitMQ exchange to bind queue to. Uses default exchange if not presented. **FastStream** declares exchange object automatically if it is not passive (by default).
+            queue (Union[str, RabbitQueue]): RabbitMQ queue to listen. **FastStream** declares and binds queue object to `exchange` automatically by default.
+            exchange (Union[str, RabbitExchange, None], optional): RabbitMQ exchange to bind queue to. Uses default exchange if not presented. **FastStream** declares exchange object automatically by default.
             channel (Optional[Channel], optional): Channel to use for consuming messages.
             consume_args (Optional[AnyDict], optional): Extra consumer arguments to use in `queue.consume(...)` method.
             no_ack (bool, optional): Whether to disable **FastStream** auto acknowledgement logic or not. (Deprecated in 0.6.0, use `ack_policy=AckPolicy.DO_NOTHING` instead. Scheduled to remove in 0.7.0)
