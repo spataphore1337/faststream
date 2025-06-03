@@ -1,3 +1,4 @@
+import logging
 from abc import abstractmethod
 from collections.abc import Sequence
 from contextlib import suppress
@@ -79,9 +80,16 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[UnifyRedisDict]):
             try:
                 await self._get_msgs(*args)
 
-            except Exception:  # noqa: PERF203
+            except Exception as e:  # noqa: PERF203
+                self._log(
+                    logging.ERROR,
+                    message="Message fetch error",
+                    exc_info=e,
+                )
+
                 if connected:
                     connected = False
+
                 await anyio.sleep(5)
 
             else:

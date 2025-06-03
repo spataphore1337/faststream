@@ -1,3 +1,4 @@
+import logging
 from abc import abstractmethod
 from collections.abc import AsyncIterator, Sequence
 from typing import (
@@ -161,13 +162,21 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[MsgType]):
         while self.running:
             try:
                 msg = await self.get_msg()
-            except KafkaException:  # pragma: no cover  # noqa: PERF203
+
+            except KafkaException as e:  # noqa: PERF203
+                self._log(
+                    logging.ERROR,
+                    message="Message fetch error",
+                    exc_info=e,
+                )
+
                 if connected:
                     connected = False
+
                 await anyio.sleep(5)
 
             else:
-                if not connected:  # pragma: no cover
+                if not connected:
                     connected = True
 
                 if msg is not None:
