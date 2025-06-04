@@ -1,8 +1,6 @@
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Optional, Protocol
 
-from typing_extensions import ReadOnly
-
 from faststream.exceptions import IncorrectState
 
 if TYPE_CHECKING:
@@ -11,8 +9,8 @@ if TYPE_CHECKING:
 
 
 class ProducerProto(Protocol):
-    _parser: ReadOnly["AsyncCallable"]
-    _decoder: ReadOnly["AsyncCallable"]
+    _parser: "AsyncCallable"
+    _decoder: "AsyncCallable"
 
     @abstractmethod
     async def publish(self, cmd: "PublishCommand") -> Optional[Any]:
@@ -43,10 +41,19 @@ class ProducerUnset(ProducerProto):
         return False
 
     @property
+    def _parser(self) -> "AsyncCallable":
+        raise IncorrectState(self.msg)
+
+    @_parser.setter
+    def _set_parser(self, value: "AsyncCallable", /) -> "AsyncCallable":
+        raise IncorrectState(self.msg)
+
+    @property
     def _decoder(self) -> "AsyncCallable":
         raise IncorrectState(self.msg)
 
-    def _parser(self) -> "AsyncCallable":
+    @_decoder.setter
+    def _set_decoder(self, value: "AsyncCallable", /) -> "AsyncCallable":
         raise IncorrectState(self.msg)
 
     async def publish(self, cmd: "PublishCommand") -> Optional[Any]:

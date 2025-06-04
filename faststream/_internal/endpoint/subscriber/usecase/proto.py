@@ -2,7 +2,7 @@ from abc import abstractmethod
 from collections.abc import AsyncIterator, Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Optional
 
-from typing_extensions import ReadOnly, Self
+from typing_extensions import Self
 
 from faststream._internal.endpoint.usecase import Endpoint
 from faststream._internal.types import MsgType
@@ -12,12 +12,7 @@ if TYPE_CHECKING:
 
     from faststream._internal.endpoint.publisher import BasePublisherProto
     from faststream._internal.endpoint.subscriber.call_item import HandlerItem
-    from faststream._internal.producer import ProducerProto
-    from faststream._internal.types import (
-        BrokerMiddleware,
-        CustomCallable,
-        SubscriberMiddleware,
-    )
+    from faststream._internal.types import CustomCallable, SubscriberMiddleware
     from faststream.message import StreamMessage
     from faststream.response import Response
 
@@ -25,10 +20,6 @@ if TYPE_CHECKING:
 class SubscriberProto(Endpoint[MsgType]):
     calls: list["HandlerItem[MsgType]"]
     running: bool
-
-    _producer: Optional["ProducerProto"]
-
-    _broker_middlewares: ReadOnly[Sequence["BrokerMiddleware[MsgType]"]]
 
     async def start(self) -> None: ...
 

@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING, Optional, Protocol, cast
+from typing import TYPE_CHECKING, Annotated, Optional, Protocol, cast
 
 import aio_pika
+from typing_extensions import deprecated
 
 from faststream._internal.constants import EMPTY
 from faststream.rabbit.schemas import Channel, RabbitQueue
@@ -22,6 +23,10 @@ class RabbitDeclarer(Protocol):
         self,
         queue: "RabbitQueue",
         declare: bool = EMPTY,
+        passive: Annotated[
+            bool,
+            deprecated("Use `declare` instead. Will be removed in the 0.7.0 release."),
+        ] = EMPTY,
         *,
         channel: Optional["Channel"] = None,
     ) -> "aio_pika.RobustQueue":
@@ -32,6 +37,10 @@ class RabbitDeclarer(Protocol):
         self,
         exchange: "RabbitExchange",
         declare: bool = EMPTY,
+        passive: Annotated[
+            bool,
+            deprecated("Use `declare` instead. Will be removed in the 0.7.0 release."),
+        ] = EMPTY,
         *,
         channel: Optional["Channel"] = None,
     ) -> "aio_pika.RobustExchange":
@@ -47,6 +56,10 @@ class FakeRabbitDeclarer(RabbitDeclarer):
         self,
         queue: "RabbitQueue",
         declare: bool = EMPTY,
+        passive: Annotated[
+            bool,
+            deprecated("Use `declare` instead. Will be removed in the 0.7.0 release."),
+        ] = EMPTY,
         *,
         channel: Optional["Channel"] = None,
     ) -> "aio_pika.RobustQueue":
@@ -56,6 +69,10 @@ class FakeRabbitDeclarer(RabbitDeclarer):
         self,
         exchange: "RabbitExchange",
         declare: bool = EMPTY,
+        passive: Annotated[
+            bool,
+            deprecated("Use `declare` instead. Will be removed in the 0.7.0 release."),
+        ] = EMPTY,
         *,
         channel: Optional["Channel"] = None,
     ) -> "aio_pika.RobustExchange":
@@ -81,11 +98,18 @@ class RabbitDeclarerImpl(RabbitDeclarer):
         self,
         queue: "RabbitQueue",
         declare: bool = EMPTY,
+        passive: Annotated[
+            bool,
+            deprecated("Use `declare` instead. Will be removed in the 0.7.0 release."),
+        ] = EMPTY,
         *,
         channel: Optional["Channel"] = None,
     ) -> "aio_pika.RobustQueue":
         if (q := self._queues.get(queue)) is None:
-            if declare is EMPTY:
+            if passive is not EMPTY:
+                declare = not passive
+
+            elif declare is EMPTY:
                 declare = queue.declare
 
             channel_obj = await self.__channel_manager.get_channel(channel)
@@ -110,15 +134,23 @@ class RabbitDeclarerImpl(RabbitDeclarer):
         self,
         exchange: "RabbitExchange",
         declare: bool = EMPTY,
+        passive: Annotated[
+            bool,
+            deprecated("Use `declare` instead. Will be removed in the 0.7.0 release."),
+        ] = EMPTY,
         *,
         channel: Optional["Channel"] = None,
     ) -> "aio_pika.RobustExchange":
         channel_obj = await self.__channel_manager.get_channel(channel)
+
         if not exchange.name:
             return channel_obj.default_exchange
 
         if (exch := self._exchanges.get(exchange)) is None:
-            if declare is EMPTY:
+            if passive is not EMPTY:
+                declare = not passive
+
+            elif declare is EMPTY:
                 declare = exchange.declare
 
             self._exchanges[exchange] = exch = cast(

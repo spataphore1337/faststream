@@ -13,7 +13,7 @@ from faststream import (
     Depends as FSDepends,
     Response,
 )
-from faststream._internal.broker.broker import BrokerUsecase
+from faststream._internal.broker import BrokerUsecase
 from faststream._internal.broker.router import BrokerRouter
 from faststream._internal.fastapi.context import Context
 from faststream._internal.fastapi.route import StreamMessage

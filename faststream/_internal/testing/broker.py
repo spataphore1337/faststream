@@ -13,7 +13,7 @@ from typing import (
 from unittest import mock
 from unittest.mock import MagicMock
 
-from faststream._internal.broker.broker import BrokerUsecase
+from faststream._internal.broker import BrokerUsecase
 from faststream._internal.logger.logger_proxy import RealLoggerObject
 from faststream._internal.testing.app import TestApp
 from faststream._internal.testing.ast import is_contains_context_name

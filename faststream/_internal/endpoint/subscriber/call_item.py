@@ -10,8 +10,6 @@ from typing import (
     cast,
 )
 
-from typing_extensions import override
-
 from faststream._internal.types import MsgType
 from faststream.exceptions import IgnoredException, SetupError
 
@@ -68,8 +66,7 @@ class HandlerItem(Generic[MsgType]):
         filter_name = getattr(filter_call, "__name__", str(filter_call))
         return f"<'{self.call_name}': filter='{filter_name}'>"
 
-    @override
-    def _setup(  # type: ignore[override]
+    def _setup(
         self,
         *,
         parser: "AsyncCallable",

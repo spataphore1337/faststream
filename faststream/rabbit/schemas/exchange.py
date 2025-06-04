@@ -1,9 +1,10 @@
 import warnings
 from typing import TYPE_CHECKING, Annotated, Any, Optional, Union
 
-from typing_extensions import Doc, override
+from typing_extensions import Doc, deprecated, override
 
 from faststream._internal.basic_types import AnyDict
+from faststream._internal.constants import EMPTY
 from faststream._internal.proto import NameRequired
 from faststream.rabbit.schemas.constants import ExchangeType
 
@@ -19,9 +20,9 @@ class RabbitExchange(NameRequired):
         "auto_delete",
         "bind_arguments",
         "bind_to",
-        "declare",
         "durable",
         "name",
+        "passive",
         "robust",
         "routing_key",
         "timeout",
@@ -86,6 +87,11 @@ class RabbitExchange(NameRequired):
                 "Copy of `passive` aio-pike option."
             ),
         ] = True,
+        passive: Annotated[
+            bool,
+            deprecated("Use `declare` instead. Will be removed in the 0.7.0 release."),
+            Doc("Do not create exchange automatically."),
+        ] = EMPTY,
         arguments: Annotated[
             Optional[AnyDict],
             Doc(
@@ -138,7 +144,12 @@ class RabbitExchange(NameRequired):
         self.robust = robust
         self.timeout = timeout
         self.arguments = arguments
-        self.declare = declare
+
+        if passive is not EMPTY:
+            self.declare = not passive
+        else:
+            self.declare = declare
+
         self.bind_to = bind_to
         self.bind_arguments = bind_arguments
         self.routing_key = routing_key

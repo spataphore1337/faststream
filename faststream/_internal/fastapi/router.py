@@ -23,7 +23,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import BaseRoute, _DefaultLifespan
 
 from faststream._internal.application import StartAbleApplication
-from faststream._internal.broker.router import BrokerRouter
+from faststream._internal.broker import BrokerRouter
 from faststream._internal.di.config import FastDependsConfig
 from faststream._internal.types import (
     MsgType,
@@ -48,7 +48,7 @@ if TYPE_CHECKING:
     from starlette.types import ASGIApp, AppType, Lifespan
 
     from faststream._internal.basic_types import AnyDict
-    from faststream._internal.broker.broker import BrokerUsecase
+    from faststream._internal.broker import BrokerUsecase
     from faststream._internal.endpoint.call_wrapper import HandlerCallWrapper
     from faststream._internal.endpoint.publisher import PublisherProto
     from faststream._internal.proto import NameRequired

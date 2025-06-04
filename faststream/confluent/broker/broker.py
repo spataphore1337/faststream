@@ -15,7 +15,7 @@ import confluent_kafka
 from typing_extensions import Doc, override
 
 from faststream.__about__ import SERVICE_NAME
-from faststream._internal.broker.broker import BrokerUsecase
+from faststream._internal.broker import BrokerUsecase
 from faststream._internal.constants import EMPTY
 from faststream._internal.di import FastDependsConfig
 from faststream.confluent.configs import KafkaBrokerConfig
@@ -27,6 +27,7 @@ from faststream.confluent.publisher.producer import AsyncConfluentFastProducerIm
 from faststream.confluent.response import KafkaPublishCommand
 from faststream.message import gen_cor_id
 from faststream.response.publish_type import PublishType
+from faststream.specification.schema import BrokerSpec
 
 from .logging import make_kafka_logger_state
 from .registrator import KafkaRegistrator
@@ -361,7 +362,7 @@ class KafkaBroker(  # type: ignore[misc]
         )
 
         super().__init__(
-            # Basic args
+            routers=routers,
             config=KafkaBrokerConfig(
                 connection_config=connection_config,
                 client_id=client_id,
@@ -388,14 +389,14 @@ class KafkaBroker(  # type: ignore[misc]
                     "broker": self,
                 },
             ),
-            routers=routers,
-            # AsyncAPI args
-            description=description,
-            specification_url=specification_url,
-            protocol=protocol,
-            protocol_version=protocol_version,
-            security=security,
-            tags=tags,
+            specification=BrokerSpec(
+                description=description,
+                url=specification_url,
+                protocol=protocol,
+                protocol_version=protocol_version,
+                security=security,
+                tags=tags,
+            ),
         )
 
     @override

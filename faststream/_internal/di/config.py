@@ -27,7 +27,7 @@ class FastDependsConfig:
     get_dependent: Optional[Callable[..., Any]] = None
 
     @property
-    def _serializer(self) -> "SerializerProto":
+    def _serializer(self) -> Optional["SerializerProto"]:
         if self.serializer is EMPTY:
             from fast_depends.pydantic import PydanticSerializer
 

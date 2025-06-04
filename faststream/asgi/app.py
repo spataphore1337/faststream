@@ -32,7 +32,7 @@ if TYPE_CHECKING:
         LoggerProto,
         SettingField,
     )
-    from faststream._internal.broker.broker import BrokerUsecase
+    from faststream._internal.broker import BrokerUsecase
     from faststream.asgi.types import ASGIApp, Receive, Scope, Send
 
     class UvicornServerProtocol(Protocol):

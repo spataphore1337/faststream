@@ -67,11 +67,7 @@ class LoggerState:
             exc_info=exc_info,
         )
 
-    def _setup(  # type: ignore[override]
-        self,
-        *,
-        context: "ContextRepo",
-    ) -> None:
+    def _setup(self, context: "ContextRepo", /) -> None:
         if not self.logger:
             if logger := self.params_storage.get_logger(context=context):
                 self.logger = RealLoggerObject(logger)

@@ -20,7 +20,7 @@ from aiokafka.producer.producer import _missing
 from typing_extensions import Doc, override
 
 from faststream.__about__ import SERVICE_NAME
-from faststream._internal.broker.broker import BrokerUsecase
+from faststream._internal.broker import BrokerUsecase
 from faststream._internal.constants import EMPTY
 from faststream._internal.di import FastDependsConfig
 from faststream._internal.utils.data import filter_by_dict
@@ -32,6 +32,7 @@ from faststream.kafka.schemas.params import ConsumerConnectionParams
 from faststream.kafka.security import parse_security
 from faststream.message import gen_cor_id
 from faststream.response.publish_type import PublishType
+from faststream.specification.schema import BrokerSpec
 
 from .logging import make_kafka_logger_state
 from .registrator import KafkaRegistrator
@@ -461,7 +462,7 @@ class KafkaBroker(
 
         super().__init__(
             **connection_params,
-            # Basic args
+            routers=routers,
             config=KafkaBrokerConfig(
                 client_id=client_id,
                 builder=builder,
@@ -488,14 +489,14 @@ class KafkaBroker(
                     "broker": self,
                 },
             ),
-            routers=routers,
-            # AsyncAPI args
-            description=description,
-            specification_url=specification_url,
-            protocol=protocol,
-            protocol_version=protocol_version,
-            security=security,
-            tags=tags,
+            specification=BrokerSpec(
+                description=description,
+                url=specification_url,
+                protocol=protocol,
+                protocol_version=protocol_version,
+                security=security,
+                tags=tags,
+            ),
         )
 
     @override

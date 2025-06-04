@@ -163,7 +163,7 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[MsgType]):
             try:
                 msg = await self.get_msg()
 
-            except KafkaException as e:  # noqa: PERF203
+            except KafkaException as e:  # pragma: no cover  # noqa: PERF203
                 self._log(
                     logging.ERROR,
                     message="Message fetch error",
@@ -176,7 +176,7 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[MsgType]):
                 await anyio.sleep(5)
 
             else:
-                if not connected:
+                if not connected:  # pragma: no cover
                     connected = True
 
                 if msg is not None:

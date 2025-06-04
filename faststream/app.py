@@ -14,7 +14,6 @@ from typing_extensions import ParamSpec
 from faststream._internal._compat import ExceptionGroup
 from faststream._internal.application import Application
 from faststream._internal.basic_types import Lifespan, LoggerProto
-from faststream._internal.broker.broker import BrokerUsecase
 from faststream._internal.cli.supervisors.utils import set_exit
 from faststream._internal.constants import EMPTY
 from faststream._internal.di import FastDependsConfig
@@ -30,7 +29,7 @@ if TYPE_CHECKING:
         LoggerProto,
         SettingField,
     )
-    from faststream._internal.broker.broker import BrokerUsecase
+    from faststream._internal.broker import BrokerUsecase
     from faststream.asgi.types import ASGIApp
 
 P_HookParams = ParamSpec("P_HookParams")

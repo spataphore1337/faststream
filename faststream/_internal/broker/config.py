@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from fast_depends.dependencies import Dependant
 
     from faststream._internal.basic_types import AnyDict
-    from faststream._internal.broker import BrokerConfig
     from faststream._internal.types import AsyncCallable, BrokerMiddleware
 
 

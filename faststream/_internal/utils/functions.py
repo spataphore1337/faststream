@@ -105,7 +105,7 @@ class FakeContext:
 
 
 def drop_response_type(model: CallModel) -> CallModel:
-    model.serializer.response_callback = None
+    setattr(model.serializer, "response_callback", None)  # noqa: B010
     return model
 
 

@@ -3,8 +3,6 @@ from collections.abc import Sequence
 from functools import partial
 from typing import TYPE_CHECKING, Any, Generic
 
-from typing_extensions import ReadOnly
-
 from faststream._internal.endpoint.utils import process_msg
 from faststream._internal.types import MsgType
 from faststream.message.source_type import SourceType
@@ -18,7 +16,10 @@ if TYPE_CHECKING:
 
 
 class BrokerPublishMixin(Generic[MsgType]):
-    middlewares: ReadOnly[Sequence["BrokerMiddleware[MsgType]"]]
+    @property
+    @abstractmethod
+    def middlewares(self) -> Sequence["BrokerMiddleware[MsgType]"]:
+        raise NotImplementedError
 
     @property
     @abstractmethod

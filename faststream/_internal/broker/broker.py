@@ -1,23 +1,20 @@
 from abc import abstractmethod
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from typing import (
     TYPE_CHECKING,
-    Annotated,
     Any,
     Generic,
     Optional,
-    Union,
 )
 
 from fast_depends import Provider
-from typing_extensions import Doc, Self
+from typing_extensions import Self
 
 from faststream._internal.types import (
     BrokerMiddleware,
     ConnectionType,
     MsgType,
 )
-from faststream.specification.proto import ServerSpecification
 
 from .abc_broker import ABCBroker
 from .pub_base import BrokerPublishMixin
@@ -28,15 +25,13 @@ if TYPE_CHECKING:
     from faststream._internal.context.repository import ContextRepo
     from faststream._internal.di import FastDependsConfig
     from faststream._internal.producer import ProducerProto
-    from faststream.security import BaseSecurity
-    from faststream.specification.schema.extra import Tag, TagDict
+    from faststream.specification.schema import BrokerSpec
 
     from .config import BrokerConfig
 
 
 class BrokerUsecase(
     ABCBroker[MsgType],
-    ServerSpecification,
     BrokerPublishMixin[MsgType],
     Generic[MsgType, ConnectionType],
 ):
@@ -45,63 +40,26 @@ class BrokerUsecase(
     Extends `ABCBroker` by connection, publish and AsyncAPI behavior.
     """
 
-    url: Union[str, list[str]]
     _connection: Optional[ConnectionType]
 
     def __init__(
         self,
         *,
         config: "BrokerConfig",
-        routers: Annotated[
-            Sequence["ABCBroker[MsgType]"],
-            Doc("Routers to apply to broker."),
-        ],
-        # AsyncAPI kwargs
-        protocol: Annotated[
-            Optional[str],
-            Doc("AsyncAPI server protocol."),
-        ],
-        protocol_version: Annotated[
-            Optional[str],
-            Doc("AsyncAPI server protocol version."),
-        ],
-        description: Annotated[
-            Optional[str],
-            Doc("AsyncAPI server description."),
-        ],
-        tags: Annotated[
-            Iterable[Union["Tag", "TagDict"]],
-            Doc("AsyncAPI server tags."),
-        ],
-        specification_url: Annotated[
-            Union[str, list[str]],
-            Doc("AsyncAPI hardcoded server addresses."),
-        ],
-        security: Annotated[
-            Optional["BaseSecurity"],
-            Doc(
-                "Security options to connect broker and generate AsyncAPI server security.",
-            ),
-        ],
+        specification: "BrokerSpec",
+        routers: Sequence["ABCBroker[MsgType]"],
         **connection_kwargs: Any,
     ) -> None:
         super().__init__(
             routers=routers,
             config=config,
         )
+        self.specification = specification
 
         self.running = False
 
         self._connection_kwargs = connection_kwargs
         self._connection = None
-
-        # AsyncAPI information
-        self.url = specification_url
-        self.protocol = protocol
-        self.protocol_version = protocol_version
-        self.description = description
-        self.tags = tags
-        self.security = security
 
     @property
     def middlewares(self) -> Sequence["BrokerMiddleware[MsgType]"]:
@@ -155,7 +113,7 @@ class BrokerUsecase(
             log_context.pop("message_id", None)
             self.config.logger.params_storage.register_subscriber(log_context)
 
-        self.config.logger._setup(context=self.config.fd_config.context)
+        self.config.logger._setup(self.config.fd_config.context)
 
     async def connect(self) -> ConnectionType:
         """Connect to a remote server."""

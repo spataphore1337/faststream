@@ -201,7 +201,7 @@ class RabbitRoute(SubscriberRoute):
             Union[str, "RabbitQueue"],
             Doc(
                 "RabbitMQ queue to listen. "
-                "**FastStream** declares and binds queue object to `exchange` automatically by default.",
+                "**FastStream** declares and binds queue object to `exchange` automatically if it is not passive (by default).",
             ),
         ],
         exchange: Annotated[
@@ -209,7 +209,7 @@ class RabbitRoute(SubscriberRoute):
             Doc(
                 "RabbitMQ exchange to bind queue to. "
                 "Uses default exchange if not present. "
-                "**FastStream** declares exchange object automatically by default."
+                "**FastStream** declares exchange object automatically if it is not passive (by default)."
             ),
         ] = None,
         *,

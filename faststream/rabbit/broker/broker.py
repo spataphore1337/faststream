@@ -13,7 +13,7 @@ from aio_pika import IncomingMessage, RobustConnection, connect_robust
 from typing_extensions import override
 
 from faststream.__about__ import SERVICE_NAME
-from faststream._internal.broker.broker import ABCBroker, BrokerUsecase
+from faststream._internal.broker import BrokerUsecase
 from faststream._internal.constants import EMPTY
 from faststream._internal.di import FastDependsConfig
 from faststream.message import gen_cor_id
@@ -34,6 +34,7 @@ from faststream.rabbit.schemas import (
 from faststream.rabbit.security import parse_security
 from faststream.rabbit.utils import build_url
 from faststream.response.publish_type import PublishType
+from faststream.specification.schema import BrokerSpec
 
 from .logging import make_rabbit_logger_state
 from .registrator import RabbitRegistrator
@@ -53,6 +54,7 @@ if TYPE_CHECKING:
     from yarl import URL
 
     from faststream._internal.basic_types import LoggerProto
+    from faststream._internal.broker.abc_broker import ABCBroker
     from faststream._internal.types import (
         BrokerMiddleware,
         CustomCallable,
@@ -210,13 +212,14 @@ class RabbitBroker(
                     "broker": self,
                 },
             ),
-            # AsyncAPI args
-            description=description,
-            specification_url=specification_url,
-            protocol=protocol or built_asyncapi_url.scheme,
-            protocol_version=protocol_version,
-            security=security,
-            tags=tags,
+            specification=BrokerSpec(
+                description=description,
+                url=[specification_url],
+                protocol=protocol or built_asyncapi_url.scheme,
+                protocol_version=protocol_version,
+                security=security,
+                tags=tags,
+            ),
         )
 
         self._channel = None

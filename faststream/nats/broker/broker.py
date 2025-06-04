@@ -27,7 +27,7 @@ from nats.js.errors import BadRequestError
 from typing_extensions import Doc, overload, override
 
 from faststream.__about__ import SERVICE_NAME
-from faststream._internal.broker.broker import BrokerUsecase
+from faststream._internal.broker import BrokerUsecase
 from faststream._internal.constants import EMPTY
 from faststream._internal.di import FastDependsConfig
 from faststream.message import gen_cor_id
@@ -40,6 +40,7 @@ from faststream.nats.response import NatsPublishCommand
 from faststream.nats.security import parse_security
 from faststream.nats.subscriber.usecases.basic import LogicSubscriber
 from faststream.response.publish_type import PublishType
+from faststream.specification.schema import BrokerSpec
 
 from .logging import make_nats_logger_state
 from .registrator import NatsRegistrator
@@ -498,13 +499,14 @@ class NatsBroker(
                     "broker": self,
                 },
             ),
-            # AsyncAPI
-            description=description,
-            specification_url=specification_url,
-            protocol=protocol,
-            protocol_version=protocol_version,
-            security=security,
-            tags=tags,
+            specification=BrokerSpec(
+                description=description,
+                url=specification_url,
+                protocol=protocol,
+                protocol_version=protocol_version,
+                security=security,
+                tags=tags,
+            ),
         )
 
     async def _connect(self) -> "Client":

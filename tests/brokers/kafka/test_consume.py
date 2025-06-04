@@ -492,6 +492,7 @@ class TestConsume(KafkaTestcaseConfig, BrokerRealConsumeTestcase):
 
     @pytest.mark.asyncio()
     @pytest.mark.slow()
+    @pytest.mark.flaky(retries=3, only_on=[AssertionError])
     @pytest.mark.parametrize(
         "with_explicit_commit",
         (

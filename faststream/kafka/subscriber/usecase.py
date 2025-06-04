@@ -5,7 +5,7 @@ from itertools import chain
 from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
 import anyio
-from aiokafka import AIOKafkaConsumer, ConsumerRecord, TopicPartition
+from aiokafka import ConsumerRecord, TopicPartition
 from aiokafka.errors import ConsumerStoppedError, KafkaError
 from typing_extensions import override
 
@@ -22,6 +22,7 @@ from faststream.kafka.parser import AioKafkaBatchParser, AioKafkaParser
 from faststream.kafka.publisher.fake import KafkaFakePublisher
 
 if TYPE_CHECKING:
+    from aiokafka import AIOKafkaConsumer
 
     from faststream._internal.endpoint.publisher import BasePublisherProto
     from faststream.kafka.configs import KafkaBrokerConfig, KafkaSubscriberConfig
@@ -72,7 +73,7 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[MsgType]):
         ]
 
     @property
-    def builder(self) -> Callable[..., AIOKafkaConsumer]:
+    def builder(self) -> Callable[..., "AIOKafkaConsumer"]:
         return self._outer_config.builder
 
     @property

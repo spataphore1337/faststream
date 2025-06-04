@@ -20,7 +20,7 @@ from redis.asyncio.connection import (
 from redis.exceptions import ConnectionError
 from typing_extensions import Doc, TypeAlias, overload, override
 
-from faststream._internal.broker.broker import BrokerUsecase
+from faststream._internal.broker import BrokerUsecase
 from faststream._internal.constants import EMPTY
 from faststream._internal.di import FastDependsConfig
 from faststream.message import gen_cor_id
@@ -30,6 +30,7 @@ from faststream.redis.publisher.producer import RedisFastProducer
 from faststream.redis.response import RedisPublishCommand
 from faststream.redis.security import parse_security
 from faststream.response.publish_type import PublishType
+from faststream.specification.schema import BrokerSpec
 
 from .logging import make_redis_logger_state
 from .registrator import RedisRegistrator
@@ -219,8 +220,7 @@ class RedisBroker(
 
         super().__init__(
             **connection_options,
-            # Basic args
-            # broker base
+            routers=routers,
             config=RedisBrokerConfig(
                 connection=connection_state,
                 producer=RedisFastProducer(
@@ -247,14 +247,14 @@ class RedisBroker(
                     "broker": self,
                 },
             ),
-            routers=routers,
-            # AsyncAPI
-            description=description,
-            specification_url=specification_url,
-            protocol=protocol,
-            protocol_version=protocol_version,
-            security=security,
-            tags=tags,
+            specification=BrokerSpec(
+                description=description,
+                url=[specification_url],
+                protocol=protocol,
+                protocol_version=protocol_version,
+                security=security,
+                tags=tags,
+            ),
         )
 
     @override

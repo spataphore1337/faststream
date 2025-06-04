@@ -16,7 +16,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 from opentelemetry.semconv.trace import SpanAttributes as SpanAttr
 from opentelemetry.trace import SpanKind, get_current_span
 
-from faststream._internal.broker.broker import BrokerUsecase
+from faststream._internal.broker import BrokerUsecase
 from faststream.opentelemetry import Baggage, CurrentBaggage, CurrentSpan
 from faststream.opentelemetry.consts import (
     ERROR_TYPE,
@@ -125,9 +125,9 @@ class LocalTelemetryTestcase(BaseTestcaseConfig):
             ]
 
         if action == Action.PROCESS:
-            assert attrs[SpanAttr.MESSAGING_MESSAGE_PAYLOAD_SIZE_BYTES] == len(
-                msg
-            ), attrs[SpanAttr.MESSAGING_MESSAGE_PAYLOAD_SIZE_BYTES]
+            assert attrs[SpanAttr.MESSAGING_MESSAGE_PAYLOAD_SIZE_BYTES] == len(msg), (
+                attrs[SpanAttr.MESSAGING_MESSAGE_PAYLOAD_SIZE_BYTES]
+            )
             assert attrs[SpanAttr.MESSAGING_OPERATION] == action, attrs[
                 SpanAttr.MESSAGING_OPERATION
             ]
