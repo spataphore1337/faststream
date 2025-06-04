@@ -2,15 +2,12 @@ from copy import deepcopy
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
-    Annotated,
     Literal,
     Optional,
     TypedDict,
     Union,
     overload,
 )
-
-from typing_extensions import deprecated
 
 from faststream._internal.constants import EMPTY
 from faststream._internal.proto import NameRequired
@@ -49,7 +46,6 @@ class RabbitQueue(NameRequired):
         "durable",
         "exclusive",
         "name",
-        "passive",
         "path_regex",
         "robust",
         "routing_key",
@@ -100,7 +96,6 @@ class RabbitQueue(NameRequired):
         durable: bool = EMPTY,
         exclusive: bool = False,
         declare: bool = True,
-        passive: bool = EMPTY,
         auto_delete: bool = False,
         arguments: Optional["ClassicQueueArgs"] = None,
         timeout: "TimeoutType" = None,
@@ -117,7 +112,6 @@ class RabbitQueue(NameRequired):
         durable: Literal[True],
         exclusive: bool = False,
         declare: bool = True,
-        passive: bool = EMPTY,
         auto_delete: bool = False,
         arguments: Optional["QuorumQueueArgs"] = None,
         timeout: "TimeoutType" = None,
@@ -134,7 +128,6 @@ class RabbitQueue(NameRequired):
         durable: Literal[True],
         exclusive: bool = False,
         declare: bool = True,
-        passive: bool = EMPTY,
         auto_delete: bool = False,
         arguments: Optional["StreamQueueArgs"] = None,
         timeout: "TimeoutType" = None,
@@ -150,10 +143,6 @@ class RabbitQueue(NameRequired):
         durable: bool = EMPTY,
         exclusive: bool = False,
         declare: bool = True,
-        passive: Annotated[
-            bool,
-            deprecated("Use `declare` instead. Will be removed in the 0.7.0 release."),
-        ] = EMPTY,
         auto_delete: bool = False,
         arguments: Union[
             "QuorumQueueArgs",
@@ -175,7 +164,6 @@ class RabbitQueue(NameRequired):
         :param declare: Whether to queue automatically or just connect to it.
                         If you want to connect to an existing queue, set this to `False`.
                         Copy of `passive` aio-pike option.
-        :param passive: Do not create queue automatically.
         :param auto_delete: The queue will be deleted after connection closed.
         :param arguments: Queue declaration arguments.
                           You can find information about them in the official RabbitMQ documentation:
@@ -211,11 +199,7 @@ class RabbitQueue(NameRequired):
         self.auto_delete = auto_delete
         self.arguments = {"x-queue-type": queue_type.value, **(arguments or {})}
         self.timeout = timeout
-
-        if passive is not EMPTY:
-            self.declare = not passive
-        else:
-            self.declare = declare
+        self.declare = declare
 
 
 CommonQueueArgs = TypedDict(
