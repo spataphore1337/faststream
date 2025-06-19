@@ -1,13 +1,11 @@
 import logging
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
-    Callable,
     Optional,
     Union,
-    cast,
 )
 
 from fastapi.datastructures import Default
@@ -29,10 +27,6 @@ from faststream.middlewares import AckPolicy
 from faststream.redis.broker.broker import RedisBroker as RB
 from faststream.redis.message import UnifyRedisDict
 from faststream.redis.schemas import ListSub, PubSub, StreamSub
-from faststream.redis.subscriber.specified import (
-    SpecificationConcurrentSubscriber,
-    SpecificationSubscriber,
-)
 
 if TYPE_CHECKING:
     from enum import Enum
@@ -51,7 +45,7 @@ if TYPE_CHECKING:
         SubscriberMiddleware,
     )
     from faststream.redis.message import UnifyRedisMessage
-    from faststream.redis.publisher.specified import SpecificationPublisher
+    from faststream.redis.publisher.specification import SpecificationPublisher
     from faststream.security import BaseSecurity
     from faststream.specification.schema.extra import Tag, TagDict
 
@@ -67,17 +61,17 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
         url: str = "redis://localhost:6379",
         *,
         host: str = EMPTY,
-        port: Union[str, int] = EMPTY,
-        db: Union[str, int] = EMPTY,
+        port: str | int = EMPTY,
+        db: str | int = EMPTY,
         connection_class: type["Connection"] = EMPTY,
-        client_name: Optional[str] = SERVICE_NAME,
+        client_name: str | None = SERVICE_NAME,
         health_check_interval: float = 0,
-        max_connections: Optional[int] = None,
-        socket_timeout: Optional[float] = None,
-        socket_connect_timeout: Optional[float] = None,
+        max_connections: int | None = None,
+        socket_timeout: float | None = None,
+        socket_connect_timeout: float | None = None,
         socket_read_size: int = 65536,
         socket_keepalive: bool = False,
-        socket_keepalive_options: Optional[Mapping[int, Union[int, bytes]]] = None,
+        socket_keepalive_options: Mapping[int, int | bytes] | None = None,
         socket_type: int = 0,
         retry_on_timeout: bool = False,
         encoding: str = "utf-8",
@@ -87,7 +81,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
         encoder_class: type["Encoder"] = Encoder,
         # broker base args
         graceful_timeout: Annotated[
-            Optional[float],
+            float | None,
             Doc(
                 "Graceful shutdown timeout. Broker waits for all running subscribers completion before shut down.",
             ),
@@ -112,19 +106,19 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = None,
         specification_url: Annotated[
-            Optional[str],
+            str | None,
             Doc("AsyncAPI hardcoded server addresses. Use `servers` if not specified."),
         ] = None,
         protocol: Annotated[
-            Optional[str],
+            str | None,
             Doc("AsyncAPI server protocol."),
         ] = None,
         protocol_version: Annotated[
-            Optional[str],
+            str | None,
             Doc("AsyncAPI server protocol version."),
         ] = "custom",
         description: Annotated[
-            Optional[str],
+            str | None,
             Doc("AsyncAPI server description."),
         ] = None,
         specification_tags: Annotated[
@@ -149,7 +143,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = True,
         schema_url: Annotated[
-            Optional[str],
+            str | None,
             Doc(
                 "AsyncAPI schema url. You should set this option to `None` to disable AsyncAPI routes at all.",
             ),
@@ -160,7 +154,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             Doc("An optional path prefix for the router."),
         ] = "",
         tags: Annotated[
-            Optional[list[Union[str, "Enum"]]],
+            list[Union[str, "Enum"]] | None,
             Doc(
                 """
                 A list of tags to be applied to all the *path operations* in this
@@ -174,7 +168,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = None,
         dependencies: Annotated[
-            Optional[Sequence["params.Depends"]],
+            Sequence["params.Depends"] | None,
             Doc(
                 """
                 A list of dependencies (using `Depends()`) to be applied to all the
@@ -197,7 +191,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = Default(JSONResponse),
         responses: Annotated[
-            Optional[dict[Union[int, str], "AnyDict"]],
+            dict[int | str, "AnyDict"] | None,
             Doc(
                 """
                 Additional responses to be shown in OpenAPI.
@@ -213,7 +207,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = None,
         callbacks: Annotated[
-            Optional[list[BaseRoute]],
+            list[BaseRoute] | None,
             Doc(
                 """
                 OpenAPI callbacks that should apply to all *path operations* in this
@@ -227,7 +221,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = None,
         routes: Annotated[
-            Optional[list[BaseRoute]],
+            list[BaseRoute] | None,
             Doc(
                 """
                 **Note**: you probably shouldn't use this parameter, it is inherited
@@ -267,7 +261,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = None,
         dependency_overrides_provider: Annotated[
-            Optional[Any],
+            Any | None,
             Doc(
                 """
                 Only used internally by FastAPI to handle dependency overrides.
@@ -289,7 +283,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = APIRoute,
         on_startup: Annotated[
-            Optional[Sequence[Callable[[], Any]]],
+            Sequence[Callable[[], Any]] | None,
             Doc(
                 """
                 A list of startup event handler functions.
@@ -301,7 +295,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = None,
         on_shutdown: Annotated[
-            Optional[Sequence[Callable[[], Any]]],
+            Sequence[Callable[[], Any]] | None,
             Doc(
                 """
                 A list of shutdown event handler functions.
@@ -326,7 +320,7 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             ),
         ] = None,
         deprecated: Annotated[
-            Optional[bool],
+            bool | None,
             Doc(
                 """
                 Mark all *path operations* in this router as deprecated.
@@ -429,16 +423,16 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
     def subscriber(  # type: ignore[override]
         self,
         channel: Annotated[
-            Union[str, PubSub, None],
+            str | PubSub | None,
             Doc("Redis PubSub object name to send message."),
         ] = None,
         *,
         list: Annotated[
-            Union[str, ListSub, None],
+            str | ListSub | None,
             Doc("Redis List object name to send message."),
         ] = None,
         stream: Annotated[
-            Union[str, StreamSub, None],
+            str | StreamSub | None,
             Doc("Redis Stream object name to send message."),
         ] = None,
         # broker arguments
@@ -481,11 +475,11 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
         ] = False,
         # AsyncAPI information
         title: Annotated[
-            Optional[str],
+            str | None,
             Doc("AsyncAPI subscriber object title."),
         ] = None,
         description: Annotated[
-            Optional[str],
+            str | None,
             Doc(
                 "AsyncAPI subscriber object description. "
                 "Uses decorated docstring as default.",
@@ -622,8 +616,8 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             int,
             Doc("Number of workers to process messages concurrently."),
         ] = 1,
-    ) -> Union[SpecificationSubscriber, SpecificationConcurrentSubscriber]:
-        subscriber = super().subscriber(
+    ):
+        return super().subscriber(
             channel=channel,
             max_workers=max_workers,
             list=list,
@@ -648,23 +642,19 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
             response_model_exclude_none=response_model_exclude_none,
         )
 
-        if max_workers > 1:
-            return cast("SpecificationConcurrentSubscriber", subscriber)
-        return cast("SpecificationSubscriber", subscriber)
-
     @override
     def publisher(
         self,
         channel: Annotated[
-            Union[str, PubSub, None],
+            str | PubSub | None,
             Doc("Redis PubSub object name to send message."),
         ] = None,
         list: Annotated[
-            Union[str, ListSub, None],
+            str | ListSub | None,
             Doc("Redis List object name to send message."),
         ] = None,
         stream: Annotated[
-            Union[str, StreamSub, None],
+            str | StreamSub | None,
             Doc("Redis Stream object name to send message."),
         ] = None,
         headers: Annotated[
@@ -688,15 +678,15 @@ class RedisRouter(StreamRouter[UnifyRedisDict]):
         ] = (),
         # AsyncAPI information
         title: Annotated[
-            Optional[str],
+            str | None,
             Doc("AsyncAPI publisher object title."),
         ] = None,
         description: Annotated[
-            Optional[str],
+            str | None,
             Doc("AsyncAPI publisher object description."),
         ] = None,
         schema: Annotated[
-            Optional[Any],
+            Any | None,
             Doc(
                 "AsyncAPI publishing message type. "
                 "Should be any python-native object annotation or `pydantic.BaseModel`.",

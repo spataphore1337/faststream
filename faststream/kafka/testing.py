@@ -1,12 +1,10 @@
 import re
-from collections.abc import Generator, Iterable, Iterator
+from collections.abc import Callable, Generator, Iterable, Iterator
 from contextlib import ExitStack, contextmanager
 from datetime import datetime, timezone
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Optional,
 )
 from unittest.mock import AsyncMock, MagicMock
 
@@ -22,13 +20,13 @@ from faststream.kafka.broker import KafkaBroker
 from faststream.kafka.message import KafkaMessage
 from faststream.kafka.parser import AioKafkaParser
 from faststream.kafka.publisher.producer import AioKafkaFastProducer
-from faststream.kafka.publisher.specified import SpecificationBatchPublisher
+from faststream.kafka.publisher.usecase import BatchPublisher
 from faststream.kafka.subscriber.usecase import BatchSubscriber
 from faststream.message import encode_message, gen_cor_id
 
 if TYPE_CHECKING:
     from faststream._internal.basic_types import SendableMessage
-    from faststream.kafka.publisher.specified import SpecificationPublisher
+    from faststream.kafka.publisher.usecase import LogicPublisher
     from faststream.kafka.response import KafkaPublishCommand
     from faststream.kafka.subscriber.usecase import LogicSubscriber
 
@@ -64,9 +62,9 @@ class TestKafkaBroker(TestBroker[KafkaBroker]):
     @staticmethod
     def create_publisher_fake_subscriber(
         broker: KafkaBroker,
-        publisher: "SpecificationPublisher[Any, Any]",
+        publisher: "LogicPublisher[Any, Any]",
     ) -> tuple["LogicSubscriber[Any]", bool]:
-        sub: Optional[LogicSubscriber[Any]] = None
+        sub: LogicSubscriber[Any] | None = None
         for handler in broker.subscribers:
             if _is_handler_matches(handler, publisher.topic, publisher.partition):
                 sub = handler
@@ -82,12 +80,12 @@ class TestKafkaBroker(TestBroker[KafkaBroker]):
                 )
                 sub = broker.subscriber(
                     partitions=[tp],
-                    batch=isinstance(publisher, SpecificationBatchPublisher),
+                    batch=isinstance(publisher, BatchPublisher),
                 )
             else:
                 sub = broker.subscriber(
                     publisher.topic,
-                    batch=isinstance(publisher, SpecificationBatchPublisher),
+                    batch=isinstance(publisher, BatchPublisher),
                 )
         else:
             is_real = True
@@ -238,11 +236,11 @@ class FakeProducer(AioKafkaFastProducer):
 def build_message(
     message: "SendableMessage",
     topic: str,
-    partition: Optional[int] = None,
-    timestamp_ms: Optional[int] = None,
-    key: Optional[bytes] = None,
-    headers: Optional[dict[str, str]] = None,
-    correlation_id: Optional[str] = None,
+    partition: int | None = None,
+    timestamp_ms: int | None = None,
+    key: bytes | None = None,
+    headers: dict[str, str] | None = None,
+    correlation_id: str | None = None,
     *,
     reply_to: str = "",
 ) -> "ConsumerRecord":
@@ -285,7 +283,7 @@ def _fake_connection(*args: Any, **kwargs: Any) -> AsyncMock:
 def _find_handler(
     subscribers: Iterable["LogicSubscriber[Any]"],
     topic: str,
-    partition: Optional[int],
+    partition: int | None,
 ) -> Generator["LogicSubscriber[Any]", None, None]:
     published_groups = set()
     for handler in subscribers:  # pragma: no branch
@@ -301,7 +299,7 @@ def _find_handler(
 def _is_handler_matches(
     handler: "LogicSubscriber[Any]",
     topic: str,
-    partition: Optional[int],
+    partition: int | None,
 ) -> bool:
     return bool(
         any(
