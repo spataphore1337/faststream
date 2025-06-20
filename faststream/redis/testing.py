@@ -37,7 +37,7 @@ from faststream.redis.subscriber.usecases.stream_subscriber import _StreamHandle
 
 if TYPE_CHECKING:
     from faststream._internal.basic_types import AnyDict, SendableMessage
-    from faststream.redis.publisher.specified import SpecificationPublisher
+    from faststream.redis.publisher.usecase import LogicPublisher
     from faststream.redis.subscriber.usecases.basic import LogicSubscriber
 
 __all__ = ("TestRedisBroker",)
@@ -59,9 +59,9 @@ class TestRedisBroker(TestBroker[RedisBroker]):
     @staticmethod
     def create_publisher_fake_subscriber(
         broker: RedisBroker,
-        publisher: "SpecificationPublisher",
+        publisher: "LogicPublisher",
     ) -> tuple["LogicSubscriber", bool]:
-        sub: Optional[LogicSubscriber] = None
+        sub: LogicSubscriber | None = None
 
         named_property = publisher.subscriber_property(name_only=True)
         visitors = (ChannelVisitor(), ListVisitor(), StreamVisitor())
@@ -233,11 +233,11 @@ class Visitor(Protocol):
     def visit(
         self,
         *,
-        channel: Optional[str],
-        list: Optional[str],
-        stream: Optional[str],
+        channel: str | None,
+        list: str | None,
+        stream: str | None,
         sub: "LogicSubscriber",
-    ) -> Optional[str]: ...
+    ) -> str | None: ...
 
     def get_message(self, channel: str, body: Any, sub: "LogicSubscriber") -> Any: ...
 
@@ -247,10 +247,10 @@ class ChannelVisitor(Visitor):
         self,
         *,
         sub: "LogicSubscriber",
-        channel: Optional[str] = None,
-        list: Optional[str] = None,
-        stream: Optional[str] = None,
-    ) -> Optional[str]:
+        channel: str | None = None,
+        list: str | None = None,
+        stream: str | None = None,
+    ) -> str | None:
         if channel is None or not isinstance(sub, ChannelSubscriber):
             return None
 
@@ -288,10 +288,10 @@ class ListVisitor(Visitor):
         self,
         *,
         sub: "LogicSubscriber",
-        channel: Optional[str] = None,
-        list: Optional[str] = None,
-        stream: Optional[str] = None,
-    ) -> Optional[str]:
+        channel: str | None = None,
+        list: str | None = None,
+        stream: str | None = None,
+    ) -> str | None:
         if list is None or not isinstance(sub, _ListHandlerMixin):
             return None
 
@@ -325,10 +325,10 @@ class StreamVisitor(Visitor):
         self,
         *,
         sub: "LogicSubscriber",
-        channel: Optional[str] = None,
-        list: Optional[str] = None,
-        stream: Optional[str] = None,
-    ) -> Optional[str]:
+        channel: str | None = None,
+        list: str | None = None,
+        stream: str | None = None,
+    ) -> str | None:
         if stream is None or not isinstance(sub, _StreamHandlerMixin):
             return None
 
