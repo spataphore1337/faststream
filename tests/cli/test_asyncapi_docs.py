@@ -193,9 +193,10 @@ def test_gen_asyncapi_for_kafka_app(
 @pytest.mark.slow()
 def test_gen_wrong_path(faststream_cli: FastStreamCLIFactory) -> None:
     with faststream_cli("faststream", "docs", "gen", "non_existent:doc") as cli:
-        assert cli.wait_for_stderr("No such file or directory")
+        pass
 
     assert cli.process.returncode == 2
+    assert cli.wait_for_stderr("No such file or directory")
 
 
 @pytest.mark.slow()

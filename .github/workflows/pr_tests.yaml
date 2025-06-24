@@ -75,7 +75,7 @@ jobs:
       - run: mkdir coverage
       - name: Test
         run: >
-          bash scripts/test.sh -vv
+          bash scripts/test.sh
           -vv -m "(slow and (${{env.ALL_PYTEST_MARKERS}})) or (${{env.ALL_PYTEST_MARKERS}})"
         env:
           COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}-${{ matrix.pydantic-version }}
