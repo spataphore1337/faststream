@@ -10,8 +10,8 @@ import pytest
 
 from faststream import FastStream, TestApp
 from faststream._internal.logger import logger
-from faststream.rabbit import RabbitBroker, TestRabbitBroker
 from faststream.asgi import AsgiResponse
+from faststream.rabbit import RabbitBroker, TestRabbitBroker
 from tests.marks import skip_windows
 
 

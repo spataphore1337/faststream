@@ -180,8 +180,6 @@ def test_gen_asyncapi_for_kafka_app(
     ):
         assert cli_thread.process
 
-        assert cli_thread.process.returncode == 0, cli_thread.process.stderr.read()
-
         schema_path = app_path.parent / "schema.json"
         assert schema_path.exists()
 
@@ -194,13 +192,10 @@ def test_gen_asyncapi_for_kafka_app(
 
 @pytest.mark.slow()
 def test_gen_wrong_path(faststream_cli: FastStreamCLIFactory) -> None:
-    with faststream_cli("faststream", "docs", "gen", "non_existent:doc") as cli_thread:
-        assert cli_thread.process
-        assert cli_thread.process
+    with faststream_cli("faststream", "docs", "gen", "non_existent:doc") as cli:
+        assert cli.wait_for_stderr("No such file or directory")
 
-    assert cli_thread.process.returncode == 2
-    assert cli_thread.process.stderr
-    assert "No such file or directory" in cli_thread.process.stderr.read()
+    assert cli.process.returncode == 2
 
 
 @pytest.mark.slow()

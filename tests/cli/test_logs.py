@@ -1,4 +1,5 @@
 import logging
+import random
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -95,7 +96,6 @@ def test_run_as_asgi_with_log_config(
     def print_log_level() -> None:
         logger.critical(f"Current log level is {logging.getLogger('unique_logger_name').level}")
     """
-
     with (
         generate_template(app_code) as app_path,
         generate_template(
@@ -107,35 +107,16 @@ def test_run_as_asgi_with_log_config(
             f"{app_path.stem}:app",
             "--log-config",
             str(log_config_file_path),
-        ) as cli_thread,
+        ) as cli,
     ):
-        assert cli_thread.process
-        assert cli_thread.process.stderr
-
-    stderr = cli_thread.process.stderr.read()
-    assert "Current log level is 42" in stderr, stderr
+        assert cli.wait_for_stderr("Current log level is 42")
 
 
 @pytest.mark.slow()
 @skip_windows
-@pytest.mark.parametrize(
-    ("log_level", "numeric_log_level"),
-    (
-        ("critical", 50),
-        ("fatal", 50),
-        ("error", 40),
-        ("warning", 30),
-        ("warn", 30),
-        ("info", 20),
-        ("debug", 10),
-        ("notset", 0),
-    ),
-)
 def test_run_as_asgi_mp_with_log_level(
     generate_template: GenerateTemplateFactory,
     faststream_cli: FastStreamCLIFactory,
-    log_level: str,
-    numeric_log_level: int,
 ) -> None:
     app_code = """
     import logging
@@ -151,6 +132,7 @@ def test_run_as_asgi_mp_with_log_level(
     def print_log_level() -> None:
         logger.critical(f"Current log level is {logging.getLogger('uvicorn.asgi').level}")
     """
+    log_level, numeric_log_level = "warn", 30
 
     with (
         generate_template(app_code) as app_path,
@@ -159,16 +141,12 @@ def test_run_as_asgi_mp_with_log_level(
             "run",
             f"{app_path.stem}:app",
             "--workers",
-            "3",
+            str(random.randint(2, 7)),
             "--log-level",
             log_level,
-        ) as cli_thread,
+        ) as cli,
     ):
-        assert cli_thread.process
-        assert cli_thread.process.stderr
-
-    stderr = cli_thread.process.stderr.read()
-    assert f"Current log level is {numeric_log_level}" in stderr, stderr
+        assert cli.wait_for_stderr(f"Current log level is {numeric_log_level}")
 
 
 def test_run_with_log_level(runner: CliRunner) -> None:

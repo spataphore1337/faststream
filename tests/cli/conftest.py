@@ -1,4 +1,5 @@
 import os
+import select
 import subprocess
 import threading
 import time
@@ -36,7 +37,7 @@ def app(broker) -> FastStream:
     return FastStream(broker)
 
 
-@pytest.fixture
+@pytest.fixture()
 def faststream_tmp_path(tmp_path: "Path"):
     faststream_tmp = tmp_path / "faststream_templates"
     faststream_tmp.mkdir(exist_ok=True)
@@ -70,10 +71,65 @@ def generate_template(
     return factory
 
 
-class CliThread(Protocol):
-    process: subprocess.Popen
+class CLIThread:
+    def __init__(
+        self,
+        command: tuple[str, ...],
+        env: dict[str, str],
+    ) -> None:
+        self.process = subprocess.Popen(
+            command,
+            stderr=subprocess.PIPE,
+            text=True,
+            shell=False,
+            env=env,
+        )
+        self.running = True
+        self.started = False
 
-    def stop(self) -> None: ...
+        self.stderr = ""
+
+        self.__std_poll_thread = threading.Thread(target=self._poll_std)
+        self.__std_poll_thread.start()
+
+    def _poll_std(self) -> None:
+        assert self.process.stderr
+
+        while self.running:
+            rlist, _, _ = select.select([self.process.stderr], [], [], 1.0)
+
+            if rlist:
+                self.started = True
+
+                if line := self.process.stderr.readline():
+                    self.stderr += line.strip()
+
+                else:
+                    break
+
+            elif self.process.poll() is not None:
+                break
+
+    def wait_for_stderr(self, message: str, timeout: float = 2.0) -> bool:
+        expiration_time = time.time() + timeout
+
+        while time.time() < expiration_time:
+            if message in self.stderr:
+                return True
+
+        return False
+
+    def stop(self) -> None:
+        self.process.terminate()
+
+        self.running = False
+        self.__std_poll_thread.join()
+
+        try:
+            self.process.wait(timeout=5)
+
+        except subprocess.TimeoutExpired:
+            self.process.kill()
 
 
 class FastStreamCLIFactory(Protocol):
@@ -82,71 +138,50 @@ class FastStreamCLIFactory(Protocol):
         *cmd: str,
         wait_time: float = 2.0,
         extra_env: dict[str, str] | None = None,
-    ) -> AbstractContextManager[CliThread]: ...
+    ) -> AbstractContextManager[CLIThread]: ...
 
 
 @pytest.fixture()
 def faststream_cli(faststream_tmp_path: Path) -> FastStreamCLIFactory:
     @contextmanager
-    def factory(
+    def cli_factory(
         *cmd: str,
         wait_time: float = 2.0,
         extra_env: dict[str, str] | None = None,
-    ) -> Generator[CliThread, None, None]:
-        class RealCLIThread(threading.Thread):
-            def __init__(self, command: tuple[str, ...], env: dict[str, str]) -> None:
-                super().__init__()
-
-                self.process = subprocess.Popen(
-                    command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    shell=False,
-                    env=env,
-                )
-
-            def stop(self) -> None:
-                self.process.terminate()
-                try:
-                    self.process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    self.process.kill()
-
-        extra_env = extra_env or {}
-        env = os.environ.copy()
-
-        if extra_env:
-            env.update(**extra_env)
-
-        env.update(
-            PATH=f"{faststream_tmp_path}:{os.environ['PATH']}",
-            PYTHONPATH=str(faststream_tmp_path),
+    ) -> Generator[CLIThread, None, None]:
+        env = (
+            {
+                "PATH": f"{faststream_tmp_path}:{os.environ['PATH']}",
+                "PYTHONPATH": str(faststream_tmp_path),
+            }
+            | os.environ.copy()
+            | (extra_env or {})
         )
 
-        cli = RealCLIThread(cmd, env)
-        cli.start()
+        cli = CLIThread(cmd, env)
 
-        wait_for_startup(cli.process, wait_time)
+        wait_for_startup(cli, wait_time)
 
         try:
             yield cli
         finally:
             cli.stop()
-            cli.join()
 
-    return factory
+    return cli_factory
 
 
 def wait_for_startup(
-    process: subprocess.Popen,
+    cli: CLIThread,
     timeout: float = 10,
     check_interval: float = 0.1,
 ) -> None:
     start_time = time.time()
 
     while time.time() - start_time < timeout:
-        if process.poll() is not None:
+        if cli.started:
+            return
+
+        if cli.process.poll() is not None:
             return
 
         time.sleep(check_interval)

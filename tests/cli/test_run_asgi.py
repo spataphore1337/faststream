@@ -1,4 +1,3 @@
-import os
 import random
 
 import httpx
@@ -56,10 +55,6 @@ def test_run(
             f"{port}",
             "--test",
             f"{extra_param}",
-            extra_env={
-                "PATH": f"{app_path.parent}:{os.environ['PATH']}",
-                "PYTHONPATH": str(app_path.parent),
-            },
         ),
     ):
         # Test liveness
@@ -120,6 +115,8 @@ def test_many_workers(
     app = AsgiFastStream(NatsBroker())
     """
 
+    workers = random.randint(2, 7)
+
     with (
         generate_template(app_code) as app_path,
         faststream_cli(
@@ -127,12 +124,13 @@ def test_many_workers(
             "run",
             f"{app_path.stem}:app",
             "--workers",
-            "2",
+            str(workers)
         ) as cli_thread,
     ):
         assert cli_thread.process
+
         process = psutil.Process(pid=cli_thread.process.pid)
-        assert len(process.children()) == 3  # workers + 1 for the main process
+        assert len(process.children()) == workers + 1  # 1 for the main process
 
 
 @pytest.mark.slow()

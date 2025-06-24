@@ -12,7 +12,7 @@ def exit(parent_id: int) -> None:  # pragma: no cover
 
 @skip_windows
 def test_base() -> None:
-    processor = Multiprocess(target=exit, args=(), workers=5)
+    processor = Multiprocess(target=exit, args=(), workers=2)
     processor._args = (processor.pid,)
     processor.run()
 

@@ -5,11 +5,9 @@ from urllib.parse import parse_qs, urlparse
 
 from faststream._internal._compat import json_dumps
 from faststream._internal.logger import logger
-from faststream.specification.base.schema import BaseApplicationSchema
 
 if TYPE_CHECKING:
-    from faststream.specification.base.specification import Specification
-
+    from faststream.specification.base.schema import BaseApplicationSchema
 
 ASYNCAPI_JS_DEFAULT_URL = "https://unpkg.com/@asyncapi/react-component@1.0.0-next.54/browser/standalone/index.js"
 
