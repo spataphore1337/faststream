@@ -1,5 +1,4 @@
 import json
-import sys
 import traceback
 from http.server import HTTPServer
 from pathlib import Path
@@ -15,7 +14,7 @@ from docs.docs_src.getting_started.asyncapi.serve import (
     gen_asyncapi_yaml_cmd,
 )
 from faststream._internal.cli.main import cli
-from tests.marks import require_aiokafka
+from tests.marks import require_aiokafka, skip_windows
 
 GEN_JSON_CMD = gen_asyncapi_json_cmd.split(" ")[1:-1]
 GEN_YAML_CMD = gen_asyncapi_yaml_cmd.split(" ")[1:-1]
@@ -69,6 +68,7 @@ def test_gen_wrong_path(runner: CliRunner) -> None:
     else:
         assert "No such file or directory" in r.stderr
 
+
 @require_aiokafka
 def test_serve_asyncapi_docs(
     runner: CliRunner,
@@ -85,7 +85,7 @@ def test_serve_asyncapi_docs(
 
 
 @require_aiokafka
-@pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+@skip_windows
 def test_serve_asyncapi_json_schema(
     runner: CliRunner,
     kafka_ascynapi_project: str,
@@ -106,7 +106,7 @@ def test_serve_asyncapi_json_schema(
 
 
 @require_aiokafka
-@pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+@skip_windows
 def test_serve_asyncapi_yaml_schema(
     runner: CliRunner,
     kafka_ascynapi_project: str,

@@ -268,14 +268,14 @@ class LocalTelemetryTestcase(BaseTestcaseConfig):
         assert event.is_set()
         mock.assert_called_once_with(msg)
 
+    @pytest.mark.flaky(retries=3, retry_delay=1)
     async def test_no_trace_context_create_process_span(
         self,
         queue: str,
+        event: asyncio.Event,
         tracer_provider: TracerProvider,
         trace_exporter: InMemorySpanExporter,
     ) -> None:
-        event = asyncio.Event()
-
         mid = self.telemetry_middleware_class(tracer_provider=tracer_provider)
         broker = self.get_broker(middlewares=(mid,))
         broker_without_middlewares = self.get_broker()

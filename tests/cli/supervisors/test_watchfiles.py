@@ -1,6 +1,5 @@
 import os
 import signal
-import sys
 import time
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -8,22 +7,24 @@ from unittest.mock import Mock, patch
 import pytest
 
 from faststream._internal.cli.supervisors.watchfiles import WatchReloader
+from tests.marks import skip_windows
 
 DIR = Path(__file__).resolve().parent
 
 
-def exit(parent_id) -> None:  # pragma: no cover
+def exit(parent_id: int) -> None:  # pragma: no cover
     os.kill(parent_id, signal.SIGINT)
 
 
 @pytest.mark.slow()
-@pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+@skip_windows
 def test_base() -> None:
     processor = WatchReloader(target=exit, args=(), reload_dirs=[DIR])
 
     processor._args = (processor.pid,)
     processor.run()
 
+    assert processor._process.exitcode
     code = abs(processor._process.exitcode)
     assert code in {signal.SIGTERM.value, 0}
 
@@ -36,7 +37,7 @@ def touch_file(file: Path) -> None:  # pragma: no cover
 
 
 @pytest.mark.slow()
-@pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+@skip_windows
 def test_restart(mock: Mock) -> None:
     file = DIR / "file.py"
 

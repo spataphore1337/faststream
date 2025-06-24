@@ -9,9 +9,9 @@ import anyio
 import pytest
 
 from faststream import FastStream, TestApp
-from faststream._internal._compat import IS_WINDOWS
 from faststream._internal.logger import logger
 from faststream.rabbit import RabbitBroker, TestRabbitBroker
+from tests.marks import skip_windows
 
 
 def test_init(app: FastStream, broker: RabbitBroker) -> None:
@@ -405,7 +405,7 @@ def test_sync_lifespan_contextmanager(async_mock: AsyncMock, app: FastStream) ->
 
 
 @pytest.mark.asyncio()
-@pytest.mark.skipif(IS_WINDOWS, reason="does not run on windows")
+@skip_windows
 async def test_stop_with_sigint(async_mock: AsyncMock, app: FastStream) -> None:
     with (
         patch.object(app.broker, "start", async_mock.broker_run_sigint),
@@ -420,7 +420,7 @@ async def test_stop_with_sigint(async_mock: AsyncMock, app: FastStream) -> None:
 
 
 @pytest.mark.asyncio()
-@pytest.mark.skipif(IS_WINDOWS, reason="does not run on windows")
+@skip_windows
 async def test_stop_with_sigterm(async_mock: AsyncMock, app: FastStream) -> None:
     with (
         patch.object(app.broker, "start", async_mock.broker_run_sigterm),
@@ -435,7 +435,7 @@ async def test_stop_with_sigterm(async_mock: AsyncMock, app: FastStream) -> None
 
 
 @pytest.mark.asyncio()
-@pytest.mark.skipif(IS_WINDOWS, reason="does not run on windows")
+@skip_windows
 async def test_run_asgi(async_mock: AsyncMock, app: FastStream) -> None:
     asgi_routes = [("/", lambda scope, receive, send: None)]
     asgi_app = app.as_asgi(asgi_routes=asgi_routes)
