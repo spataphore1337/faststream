@@ -8,8 +8,8 @@ if TYPE_CHECKING:
 class AsgiResponse:
     def __init__(
         self,
-        body: bytes,
-        status_code: int,
+        body: bytes = b"",
+        status_code: int = 200,
         headers: Mapping[str, str] | None = None,
     ) -> None:
         self.status_code = status_code

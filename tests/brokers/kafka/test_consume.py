@@ -117,7 +117,7 @@ class TestConsume(KafkaTestcaseConfig, BrokerRealConsumeTestcase):
 
     @pytest.mark.asyncio()
     @pytest.mark.slow()
-    @pytest.mark.flaky(retries=3, only_on=[AssertionError])
+    @pytest.mark.flaky(retries=3, only_on=[AssertionError], retry_delay=1)
     async def test_consume_auto_ack(self, event: asyncio.Event, queue: str) -> None:
         consume_broker = self.get_broker(apply_types=True)
 

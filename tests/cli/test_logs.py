@@ -7,6 +7,9 @@ from typer.testing import CliRunner
 from faststream import FastStream
 from faststream._internal.cli.main import cli as faststream_app
 from faststream._internal.cli.utils.logs import get_log_level
+from tests.marks import skip_windows
+
+from .conftest import FastStreamCLIFactory, GenerateTemplateFactory
 
 
 @pytest.mark.parametrize(
@@ -27,6 +30,145 @@ from faststream._internal.cli.utils.logs import get_log_level
 )
 def test_get_level(level: str, expected_level: int) -> None:
     assert get_log_level(level) == expected_level
+
+
+@pytest.mark.slow()
+@skip_windows
+@pytest.mark.parametrize(
+    ("log_config_file_name", "log_config"),
+    (
+        pytest.param(
+            "config.json",
+            """
+            {
+                "version": 1,
+                "loggers": {
+                    "unique_logger_name": {
+                        "level": 42
+                    }
+                }
+            }
+            """,
+            id="json config",
+        ),
+        pytest.param(
+            "config.toml",
+            """
+            version = 1
+
+            [loggers.unique_logger_name]
+            level = 42
+            """,
+            id="toml config",
+        ),
+        pytest.param(
+            "config.yaml",
+            """
+            version: 1
+            loggers:
+                unique_logger_name:
+                    level: 42
+            """,
+            id="yaml config",
+        ),
+    ),
+)
+def test_run_as_asgi_with_log_config(
+    generate_template: GenerateTemplateFactory,
+    faststream_cli: FastStreamCLIFactory,
+    log_config_file_name: str,
+    log_config: str,
+) -> None:
+    app_code = """
+    import logging
+
+    from faststream.asgi import AsgiFastStream
+    from faststream.nats import NatsBroker
+
+    broker = NatsBroker()
+
+    app = AsgiFastStream(broker)
+
+    logger = logging.getLogger("faststream")
+
+    @app.on_startup
+    def print_log_level() -> None:
+        logger.critical(f"Current log level is {logging.getLogger('unique_logger_name').level}")
+    """
+
+    with (
+        generate_template(app_code) as app_path,
+        generate_template(
+            log_config, filename=log_config_file_name
+        ) as log_config_file_path,
+        faststream_cli(
+            "faststream",
+            "run",
+            f"{app_path.stem}:app",
+            "--log-config",
+            str(log_config_file_path),
+        ) as cli_thread,
+    ):
+        assert cli_thread.process
+        assert cli_thread.process.stderr
+
+    stderr = cli_thread.process.stderr.read()
+    assert "Current log level is 42" in stderr, stderr
+
+
+@pytest.mark.slow()
+@skip_windows
+@pytest.mark.parametrize(
+    ("log_level", "numeric_log_level"),
+    (
+        ("critical", 50),
+        ("fatal", 50),
+        ("error", 40),
+        ("warning", 30),
+        ("warn", 30),
+        ("info", 20),
+        ("debug", 10),
+        ("notset", 0),
+    ),
+)
+def test_run_as_asgi_mp_with_log_level(
+    generate_template: GenerateTemplateFactory,
+    faststream_cli: FastStreamCLIFactory,
+    log_level: str,
+    numeric_log_level: int,
+) -> None:
+    app_code = """
+    import logging
+
+    from faststream.asgi import AsgiFastStream
+    from faststream.nats import NatsBroker
+
+    app = AsgiFastStream(NatsBroker())
+
+    logger = logging.getLogger("faststream")
+
+    @app.on_startup
+    def print_log_level() -> None:
+        logger.critical(f"Current log level is {logging.getLogger('uvicorn.asgi').level}")
+    """
+
+    with (
+        generate_template(app_code) as app_path,
+        faststream_cli(
+            "faststream",
+            "run",
+            f"{app_path.stem}:app",
+            "--workers",
+            "3",
+            "--log-level",
+            log_level,
+        ) as cli_thread,
+    ):
+        assert cli_thread.process
+        assert cli_thread.process.stderr
+
+    stderr = cli_thread.process.stderr.read()
+    assert f"Current log level is {numeric_log_level}" in stderr, stderr
 
 
 def test_run_with_log_level(runner: CliRunner) -> None:
@@ -61,38 +203,3 @@ def test_run_with_wrong_log_level(runner: CliRunner) -> None:
         )
 
         assert result.exit_code == 2, result.output
-
-
-def test_run_with_log_config(runner: CliRunner) -> None:
-    app = FastStream(MagicMock())
-    app.run = AsyncMock()
-
-    logging_config = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {"app": {"format": "%(message)s"}},
-        "handlers": {
-            "app": {
-                "class": "logging.StreamHandler",
-                "formatter": "app",
-                "level": "INFO",
-            }
-        },
-        "loggers": {"app": {"level": "INFO", "handlers": ["app"]}},
-    }
-
-    with patch(
-        "faststream._internal.cli.utils.logs._get_log_config",
-        return_value=logging_config,
-    ):
-        result = runner.invoke(
-            faststream_app,
-            [
-                "run",
-                "faststream:app",
-                "--log-config",
-                "log_config.json",
-            ],
-        )
-        app.run.assert_not_called()
-        assert result.exit_code != 0

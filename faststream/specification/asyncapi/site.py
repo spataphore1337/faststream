@@ -5,6 +5,7 @@ from urllib.parse import parse_qs, urlparse
 
 from faststream._internal._compat import json_dumps
 from faststream._internal.logger import logger
+from faststream.specification.base.schema import BaseApplicationSchema
 
 if TYPE_CHECKING:
     from faststream.specification.base.specification import Specification
@@ -18,7 +19,7 @@ ASYNCAPI_CSS_DEFAULT_URL = (
 
 
 def get_asyncapi_html(
-    schema: "Specification",
+    schema: "BaseApplicationSchema",
     sidebar: bool = True,
     info: bool = True,
     servers: bool = True,
@@ -62,7 +63,7 @@ def get_asyncapi_html(
         <head>
     """
         f"""
-        <title>{schema.schema.info.title} AsyncAPI</title>
+        <title>{schema.info.title} AsyncAPI</title>
     """
         """
         <link rel="icon" href="https://www.asyncapi.com/favicon.ico">
@@ -102,7 +103,7 @@ def get_asyncapi_html(
 
 
 def serve_app(
-    schema: "Specification",
+    schema: "BaseApplicationSchema",
     host: str,
     port: int,
 ) -> None:
@@ -120,7 +121,7 @@ class _Handler(server.BaseHTTPRequestHandler):
     def __init__(
         self,
         *args: Any,
-        schema: "Specification",
+        schema: "BaseApplicationSchema",
         **kwargs: Any,
     ) -> None:
         self.schema = schema

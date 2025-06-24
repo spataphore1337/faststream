@@ -74,7 +74,7 @@ def make_asyncapi_asgi(
         nonlocal cached_docs
         if not cached_docs:
             cached_docs = get_asyncapi_html(
-                schema,
+                schema.schema,
                 sidebar=sidebar,
                 info=info,
                 servers=servers,
