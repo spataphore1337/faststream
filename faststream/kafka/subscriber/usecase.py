@@ -16,7 +16,7 @@ from typing import (
 
 import anyio
 from aiokafka import ConsumerRecord, TopicPartition
-from aiokafka.errors import ConsumerStoppedError, KafkaError
+from aiokafka.errors import ConsumerStoppedError, KafkaError, UnsupportedCodecError
 from typing_extensions import override
 
 from faststream.broker.publisher.fake import FakePublisher
@@ -233,8 +233,17 @@ class LogicSubscriber(ABC, TasksMixin, SubscriberUsecase[MsgType]):
             try:
                 msg = await self.get_msg(consumer)
 
-            # pragma: no cover
-            except KafkaError as e:  # noqa: PERF203
+            except UnsupportedCodecError as e:  # noqa: PERF203
+                self._log(
+                    logging.ERROR,
+                    "There is no suitable compression library available. Please refer to the Kafka "
+                    "documentation for more information - "
+                    "https://aiokafka.readthedocs.io/en/stable/#installation",
+                    exc_info=e,
+                )
+                await anyio.sleep(15)
+
+            except KafkaError as e:
                 self._log(logging.ERROR, "Kafka error occurred", exc_info=e)
                 if connected:
                     connected = False
