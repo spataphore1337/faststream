@@ -1,9 +1,6 @@
 from collections.abc import Generator, Iterable, Iterator
 from contextlib import ExitStack, contextmanager
-from typing import (
-    TYPE_CHECKING,
-    Any,
-)
+from typing import TYPE_CHECKING, Any, Optional
 from unittest.mock import AsyncMock
 
 import anyio
@@ -20,6 +17,8 @@ from faststream.nats.publisher.producer import NatsFastProducer
 from faststream.nats.schemas.js_stream import is_subject_match_wildcard
 
 if TYPE_CHECKING:
+    from fast_depends.library.serializer import SerializerProto
+
     from faststream._internal.basic_types import SendableMessage
     from faststream._internal.producer import ProducerProto
     from faststream.nats.configs import NatsBrokerConfig
@@ -106,6 +105,7 @@ class FakeProducer(NatsFastProducer):
             headers=cmd.headers,
             correlation_id=cmd.correlation_id,
             reply_to=cmd.reply_to,
+            serializer=self.broker.config.fd_config._serializer
         )
 
         for handler in _find_handler(
@@ -132,6 +132,7 @@ class FakeProducer(NatsFastProducer):
             subject=cmd.destination,
             headers=cmd.headers,
             correlation_id=cmd.correlation_id,
+            serializer=self.broker.config.fd_config._serializer
         )
 
         for handler in _find_handler(
@@ -164,6 +165,7 @@ class FakeProducer(NatsFastProducer):
             message=result.body,
             headers=result.headers,
             correlation_id=result.correlation_id,
+            serializer=self.broker.config.fd_config._serializer
         )
 
 
@@ -212,8 +214,9 @@ def build_message(
     reply_to: str = "",
     correlation_id: str | None = None,
     headers: dict[str, str] | None = None,
+    serializer: Optional["SerializerProto"] = None,
 ) -> "PatchedMessage":
-    msg, content_type = encode_message(message)
+    msg, content_type = encode_message(message, serializer=serializer)
     return PatchedMessage(
         _client=None,  # type: ignore[arg-type]
         subject=subject,

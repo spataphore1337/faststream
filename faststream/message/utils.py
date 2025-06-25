@@ -1,18 +1,15 @@
 import json
 from collections.abc import Sequence
 from contextlib import suppress
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from uuid import uuid4
 
-from faststream._internal._compat import dump_json, json_loads
+from faststream._internal._compat import json_dumps, json_loads
 from faststream._internal.constants import ContentTypes
 
 if TYPE_CHECKING:
+    from fast_depends.library.serializer import SerializerProto
+
     from faststream._internal.basic_types import DecodedMessage, SendableMessage
 
     from .message import StreamMessage
@@ -47,6 +44,7 @@ def decode_message(message: "StreamMessage[Any]") -> "DecodedMessage":
 
 def encode_message(
     msg: Union[Sequence["SendableMessage"], "SendableMessage"],
+    serializer: Optional["SerializerProto"],
 ) -> tuple[bytes, str | None]:
     """Encodes a message."""
     if msg is None:
@@ -67,7 +65,12 @@ def encode_message(
             ContentTypes.TEXT.value,
         )
 
+    if serializer is not None:
+        return (
+            serializer.encode(msg),
+            ContentTypes.JSON.value,
+        )
     return (
-        dump_json(msg),
+        json_dumps(msg),
         ContentTypes.JSON.value,
     )

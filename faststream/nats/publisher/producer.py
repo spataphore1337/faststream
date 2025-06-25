@@ -17,6 +17,7 @@ from faststream.nats.helpers.state import (
 from faststream.nats.parser import NatsParser
 
 if TYPE_CHECKING:
+    from fast_depends.library.serializer import SerializerProto
     from nats.aio.client import Client
     from nats.aio.msg import Msg
     from nats.js import JetStreamContext
@@ -30,7 +31,9 @@ if TYPE_CHECKING:
 
 
 class NatsFastProducer(ProducerProto):
-    def connect(self, connection: "Client") -> None: ...
+    def connect(
+        self, connection: "Client", serializer: Optional["SerializerProto"]
+    ) -> None: ...
 
     def disconnect(self) -> None: ...
 
@@ -64,13 +67,18 @@ class NatsFastProducerImpl(NatsFastProducer):
         parser: Optional["CustomCallable"],
         decoder: Optional["CustomCallable"],
     ) -> None:
+        self.serializer: SerializerProto | None = None
+
         default = NatsParser(pattern="", is_ack_disabled=True)
         self._parser = resolve_custom_func(parser, default.parse_message)
         self._decoder = resolve_custom_func(decoder, default.decode_message)
 
         self.__state: ConnectionState[Client] = EmptyConnectionState()
 
-    def connect(self, connection: "Client") -> None:
+    def connect(
+        self, connection: "Client", serializer: Optional["SerializerProto"]
+    ) -> None:
+        self.serializer = serializer
         self.__state = ConnectedState(connection)
 
     def disconnect(self) -> None:
@@ -81,7 +89,7 @@ class NatsFastProducerImpl(NatsFastProducer):
         self,
         cmd: "NatsPublishCommand",
     ) -> None:
-        payload, content_type = encode_message(cmd.body)
+        payload, content_type = encode_message(cmd.body, self.serializer)
 
         headers_to_send = {
             "content-type": content_type or "",
@@ -100,7 +108,7 @@ class NatsFastProducerImpl(NatsFastProducer):
         self,
         cmd: "NatsPublishCommand",
     ) -> "Msg":
-        payload, content_type = encode_message(cmd.body)
+        payload, content_type = encode_message(cmd.body, self.serializer)
 
         headers_to_send = {
             "content-type": content_type or "",
@@ -135,13 +143,18 @@ class NatsJSFastProducer(NatsFastProducer):
         parser: Optional["CustomCallable"],
         decoder: Optional["CustomCallable"],
     ) -> None:
+        self.serializer: SerializerProto | None = None
+
         default = NatsParser(pattern="", is_ack_disabled=True)
         self._parser = resolve_custom_func(parser, default.parse_message)
         self._decoder = resolve_custom_func(decoder, default.decode_message)
 
         self.__state: ConnectionState[JetStreamContext] = EmptyConnectionState()
 
-    def connect(self, connection: "JetStreamContext") -> None:
+    def connect(
+        self, connection: "JetStreamContext", serializer: Optional["SerializerProto"]
+    ) -> None:
+        self.serializer = serializer
         self.__state = ConnectedState(connection)
 
     def disconnect(self) -> None:
@@ -152,7 +165,7 @@ class NatsJSFastProducer(NatsFastProducer):
         self,
         cmd: "NatsPublishCommand",
     ) -> "PubAck":
-        payload, content_type = encode_message(cmd.body)
+        payload, content_type = encode_message(cmd.body, self.serializer)
 
         headers_to_send = {
             "content-type": content_type or "",
@@ -172,7 +185,7 @@ class NatsJSFastProducer(NatsFastProducer):
         self,
         cmd: "NatsPublishCommand",
     ) -> "Msg":
-        payload, content_type = encode_message(cmd.body)
+        payload, content_type = encode_message(cmd.body, self.serializer)
 
         reply_to = self.__state.connection._nc.new_inbox()
         future: asyncio.Future[Msg] = asyncio.Future()
