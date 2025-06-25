@@ -55,7 +55,7 @@ docs-build:
 [doc("Serve docs")]
 [group("docs")]
 docs-serve:
-  docker compose exec faststream uv run sh -c "cd docs && mkdocs serve"
+  docker compose exec faststream uv run sh -c "cd docs && python docs.py live 8000 --fast"
 
 
 # Linter

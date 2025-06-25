@@ -120,11 +120,7 @@ def test_many_workers(
     with (
         generate_template(app_code) as app_path,
         faststream_cli(
-            "faststream",
-            "run",
-            f"{app_path.stem}:app",
-            "--workers",
-            str(workers)
+            "faststream", "run", f"{app_path.stem}:app", "--workers", str(workers)
         ) as cli_thread,
     ):
         process = psutil.Process(pid=cli_thread.process.pid)

@@ -1,4 +1,3 @@
-
 import pytest
 
 from faststream._internal._compat import IS_WINDOWS, PYDANTIC_V2

@@ -1,4 +1,3 @@
-
 import pydantic
 
 from faststream._internal.broker import BrokerUsecase

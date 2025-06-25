@@ -34,7 +34,7 @@ CONTRIBUTING_PATH = BASE_DIR.parent / "CONTRIBUTING.md"
 
 config = load_config(str(CONFIG))
 
-DEV_SERVER = str(config.get("dev_addr", "0.0.0.0:8008"))
+DEV_SERVER = str(config.get("dev_addr", "0.0.0.0:8000"))
 
 app = typer.Typer()
 
@@ -59,7 +59,7 @@ def preview() -> None:
 
 @app.command()
 def live(
-    port: Annotated[Optional[str], typer.Argument()] = None,
+    port: Annotated[str | None, typer.Argument()] = None,
     fast: bool = False,
 ) -> None:
     """Start mkdocs preview with hotreload."""
