@@ -13,7 +13,8 @@ if TYPE_CHECKING:
 
 @dataclass(kw_only=True)
 class RabbitPublisherSpecificationConfig(
-    RabbitConfig, PublisherSpecificationConfig,
+    RabbitConfig,
+    PublisherSpecificationConfig,
 ):
     routing_key: str
     message_kwargs: "PublishKwargs"

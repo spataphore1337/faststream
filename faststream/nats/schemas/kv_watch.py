@@ -1,4 +1,3 @@
-
 from faststream._internal.proto import NameRequired
 
 

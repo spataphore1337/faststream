@@ -28,7 +28,8 @@ class Endpoint(Protocol[MsgType]):
 
     def __call__(
         self,
-        func: Callable[P_HandlerParams, T_HandlerReturn] | HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
+        func: Callable[P_HandlerParams, T_HandlerReturn]
+        | HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
     ) -> HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn]:
         handler: HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn] = (
             ensure_call_wrapper(func)

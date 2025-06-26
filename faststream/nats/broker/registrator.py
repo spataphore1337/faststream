@@ -211,38 +211,38 @@ class NatsRegistrator(Registrator["Msg"]):
         stream = self._stream_builder.create(stream)
 
         subscriber = super().subscriber(
-                create_subscriber(
-                    subject=subject,
-                    queue=queue,
-                    stream=stream,
-                    pull_sub=PullSub.validate(pull_sub),
-                    kv_watch=KvWatch.validate(kv_watch),
-                    obj_watch=ObjWatch.validate(obj_watch),
-                    max_workers=max_workers,
-                    # extra args
-                    pending_msgs_limit=pending_msgs_limit,
-                    pending_bytes_limit=pending_bytes_limit,
-                    max_msgs=max_msgs,
-                    durable=durable,
-                    config=config,
-                    ordered_consumer=ordered_consumer,
-                    idle_heartbeat=idle_heartbeat,
-                    flow_control=flow_control,
-                    deliver_policy=deliver_policy,
-                    headers_only=headers_only,
-                    inbox_prefix=inbox_prefix,
-                    ack_first=ack_first,
-                    # subscriber args
-                    ack_policy=ack_policy,
-                    no_ack=no_ack,
-                    no_reply=no_reply,
-                    broker_config=self.config,
-                    # AsyncAPI
-                    title_=title,
-                    description_=description,
-                    include_in_schema=include_in_schema,
-                ),
-            )
+            create_subscriber(
+                subject=subject,
+                queue=queue,
+                stream=stream,
+                pull_sub=PullSub.validate(pull_sub),
+                kv_watch=KvWatch.validate(kv_watch),
+                obj_watch=ObjWatch.validate(obj_watch),
+                max_workers=max_workers,
+                # extra args
+                pending_msgs_limit=pending_msgs_limit,
+                pending_bytes_limit=pending_bytes_limit,
+                max_msgs=max_msgs,
+                durable=durable,
+                config=config,
+                ordered_consumer=ordered_consumer,
+                idle_heartbeat=idle_heartbeat,
+                flow_control=flow_control,
+                deliver_policy=deliver_policy,
+                headers_only=headers_only,
+                inbox_prefix=inbox_prefix,
+                ack_first=ack_first,
+                # subscriber args
+                ack_policy=ack_policy,
+                no_ack=no_ack,
+                no_reply=no_reply,
+                broker_config=self.config,
+                # AsyncAPI
+                title_=title,
+                description_=description,
+                include_in_schema=include_in_schema,
+            ),
+        )
 
         if stream and subscriber.subject:
             stream.add_subject(subscriber.subject)

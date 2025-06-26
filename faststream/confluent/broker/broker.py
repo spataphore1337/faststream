@@ -2,7 +2,6 @@ import logging
 from collections.abc import Callable, Iterable, Sequence
 from typing import (
     TYPE_CHECKING,
-    Annotated,
     Literal,
     Optional,
     TypeVar,
@@ -11,7 +10,7 @@ from typing import (
 
 import anyio
 import confluent_kafka
-from typing_extensions import Doc, override
+from typing_extensions import override
 
 from faststream.__about__ import SERVICE_NAME
 from faststream._internal.broker import BrokerUsecase
@@ -83,7 +82,10 @@ class KafkaBroker(  # type: ignore[misc]
         # publisher args
         acks: Literal[0, 1, -1, "all"] = EMPTY,
         compression_type: Literal["gzip", "snappy", "lz4", "zstd"] | None = None,
-        partitioner: str | Callable[[bytes, list[Partition], list[Partition]], Partition] = "consistent_random",
+        partitioner: str
+        | Callable[
+            [bytes, list[Partition], list[Partition]], Partition
+        ] = "consistent_random",
         max_request_size: int = 1024 * 1024,
         linger_ms: int = 0,
         enable_idempotence: bool = False,

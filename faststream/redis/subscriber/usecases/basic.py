@@ -127,7 +127,10 @@ class LogicSubscriber(TasksMixin, SubscriberUsecase[UnifyRedisDict]):
 
 class ConcurrentSubscriber(ConcurrentMixin["BrokerStreamMessage"], LogicSubscriber):
     def __init__(
-        self, config: "RedisSubscriberConfig", specification: "RedisSubscriberSpecification", calls: "CallsCollection[Any]",
+        self,
+        config: "RedisSubscriberConfig",
+        specification: "RedisSubscriberSpecification",
+        calls: "CallsCollection[Any]",
         max_workers: int,
     ) -> None:
         super().__init__(config, specification, calls, max_workers=max_workers)

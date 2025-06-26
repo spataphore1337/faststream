@@ -15,7 +15,9 @@ from faststream.specification.schema.bindings import (
 from .config import RabbitSubscriberSpecificationConfig
 
 
-class RabbitSubscriberSpecification(SubscriberSpecification[RabbitBrokerConfig, RabbitSubscriberSpecificationConfig]):
+class RabbitSubscriberSpecification(
+    SubscriberSpecification[RabbitBrokerConfig, RabbitSubscriberSpecificationConfig]
+):
     @property
     def name(self) -> str:
         if self.config.title_:

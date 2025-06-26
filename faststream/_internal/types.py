@@ -42,7 +42,9 @@ SyncCallable: TypeAlias = Callable[
     Any,
 ]
 AsyncCallable: TypeAlias = AsyncFuncAny
-AsyncCustomCallable: TypeAlias = AsyncFuncAny | Callable[[Any, AsyncFuncAny], Awaitable[Any]]
+AsyncCustomCallable: TypeAlias = (
+    AsyncFuncAny | Callable[[Any, AsyncFuncAny], Awaitable[Any]]
+)
 CustomCallable: TypeAlias = AsyncCustomCallable | SyncCallable
 
 P_HandlerParams = ParamSpec("P_HandlerParams")
@@ -57,7 +59,10 @@ SyncWrappedHandlerCall: TypeAlias = Callable[
     [StreamMessage[MsgType]],
     T_HandlerReturn | None,
 ]
-WrappedHandlerCall: TypeAlias = AsyncWrappedHandlerCall[MsgType, T_HandlerReturn] | SyncWrappedHandlerCall[MsgType, T_HandlerReturn]
+WrappedHandlerCall: TypeAlias = (
+    AsyncWrappedHandlerCall[MsgType, T_HandlerReturn]
+    | SyncWrappedHandlerCall[MsgType, T_HandlerReturn]
+)
 
 
 class BrokerMiddleware(Protocol[AnyMsg_contra, PublishCommandType]):

@@ -72,7 +72,17 @@ def create_subscriber(
     title_: str | None,
     description_: str | None,
     include_in_schema: bool,
-) -> BatchPullStreamSubscriber | ConcurrentCoreSubscriber | ConcurrentPullStreamSubscriber | ConcurrentPushStreamSubscriber | CoreSubscriber | KeyValueWatchSubscriber | ObjStoreWatchSubscriber | PullStreamSubscriber | PushStreamSubscriber:
+) -> (
+    BatchPullStreamSubscriber
+    | ConcurrentCoreSubscriber
+    | ConcurrentPullStreamSubscriber
+    | ConcurrentPushStreamSubscriber
+    | CoreSubscriber
+    | KeyValueWatchSubscriber
+    | ObjStoreWatchSubscriber
+    | PullStreamSubscriber
+    | PushStreamSubscriber
+):
     _validate_input_for_misconfigure(
         subject=subject,
         queue=queue,

@@ -41,7 +41,12 @@ Offset: TypeAlias = bytes
 
 
 class _StreamHandlerMixin(LogicSubscriber):
-    def __init__(self, config: "RedisSubscriberConfig", specification: "RedisSubscriberSpecification", calls: "CallsCollection[Any]") -> None:
+    def __init__(
+        self,
+        config: "RedisSubscriberConfig",
+        specification: "RedisSubscriberSpecification",
+        calls: "CallsCollection[Any]",
+    ) -> None:
         super().__init__(config, specification, calls)
 
         assert config.stream_sub  # nosec B101
@@ -255,7 +260,12 @@ class _StreamHandlerMixin(LogicSubscriber):
 
 
 class StreamSubscriber(_StreamHandlerMixin):
-    def __init__(self, config: "RedisSubscriberConfig", specification: "RedisSubscriberSpecification", calls: "CallsCollection[Any]") -> None:
+    def __init__(
+        self,
+        config: "RedisSubscriberConfig",
+        specification: "RedisSubscriberSpecification",
+        calls: "CallsCollection[Any]",
+    ) -> None:
         parser = RedisStreamParser()
         config.decoder = parser.decode_message
         config.parser = parser.parse_message
@@ -298,7 +308,12 @@ class StreamSubscriber(_StreamHandlerMixin):
 
 
 class StreamBatchSubscriber(_StreamHandlerMixin):
-    def __init__(self, config: "RedisSubscriberConfig", specification: "RedisSubscriberSpecification", calls: "CallsCollection[Any]") -> None:
+    def __init__(
+        self,
+        config: "RedisSubscriberConfig",
+        specification: "RedisSubscriberSpecification",
+        calls: "CallsCollection[Any]",
+    ) -> None:
         parser = RedisBatchStreamParser()
         config.decoder = parser.decode_message
         config.parser = parser.parse_message

@@ -32,7 +32,11 @@ class LogicPublisher(PublisherUsecase[MsgType]):
 
     _producer: "AioKafkaFastProducer"
 
-    def __init__(self, config: "KafkaPublisherConfig", specification: "KafkaPublisherSpecification") -> None:
+    def __init__(
+        self,
+        config: "KafkaPublisherConfig",
+        specification: "KafkaPublisherSpecification",
+    ) -> None:
         super().__init__(config, specification)
 
         self._topic = config.topic
@@ -125,7 +129,11 @@ class LogicPublisher(PublisherUsecase[MsgType]):
 
 
 class DefaultPublisher(LogicPublisher[ConsumerRecord]):
-    def __init__(self, config: "KafkaPublisherConfig", specification: "KafkaPublisherSpecification") -> None:
+    def __init__(
+        self,
+        config: "KafkaPublisherConfig",
+        specification: "KafkaPublisherSpecification",
+    ) -> None:
         super().__init__(config, specification)
 
         self.key = config.key

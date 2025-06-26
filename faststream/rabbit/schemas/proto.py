@@ -13,7 +13,9 @@ class BaseRMQInformation:
     queue: "RabbitQueue"
     exchange: "RabbitExchange"
 
-    def __init__(self, config: "RabbitSpecificationConfig", *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, config: "RabbitSpecificationConfig", *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(config, *args, **kwargs)
 
         self.queue = config.queue

@@ -39,7 +39,12 @@ Offset: TypeAlias = bytes
 
 
 class _ListHandlerMixin(LogicSubscriber):
-    def __init__(self, config: "RedisSubscriberConfig", specification: "RedisSubscriberSpecification", calls: "CallsCollection[Any]") -> None:
+    def __init__(
+        self,
+        config: "RedisSubscriberConfig",
+        specification: "RedisSubscriberSpecification",
+        calls: "CallsCollection[Any]",
+    ) -> None:
         super().__init__(config, specification, calls)
         assert config.list_sub  # nosec B101
         self._list_sub = config.list_sub
@@ -160,7 +165,12 @@ class _ListHandlerMixin(LogicSubscriber):
 
 
 class ListSubscriber(_ListHandlerMixin):
-    def __init__(self, config: "RedisSubscriberConfig", specification: "RedisSubscriberSpecification", calls: "CallsCollection[Any]") -> None:
+    def __init__(
+        self,
+        config: "RedisSubscriberConfig",
+        specification: "RedisSubscriberSpecification",
+        calls: "CallsCollection[Any]",
+    ) -> None:
         parser = RedisListParser()
         config.parser = parser.parse_message
         config.decoder = parser.decode_message
@@ -185,7 +195,12 @@ class ListSubscriber(_ListHandlerMixin):
 
 
 class ListBatchSubscriber(_ListHandlerMixin):
-    def __init__(self, config: "RedisSubscriberConfig", specification: "RedisSubscriberSpecification", calls: "CallsCollection[Any]") -> None:
+    def __init__(
+        self,
+        config: "RedisSubscriberConfig",
+        specification: "RedisSubscriberSpecification",
+        calls: "CallsCollection[Any]",
+    ) -> None:
         parser = RedisBatchListParser()
         config.parser = parser.parse_message
         config.decoder = parser.decode_message

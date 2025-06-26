@@ -1,5 +1,3 @@
 from .usecase import RabbitPublisher
 
-__all__ = (
-    "RabbitPublisher",
-)
+__all__ = ("RabbitPublisher",)

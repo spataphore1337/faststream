@@ -3,7 +3,6 @@ from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from typing import (
     TYPE_CHECKING,
-    Annotated,
     Any,
     Literal,
     Optional,
@@ -16,7 +15,7 @@ import aiokafka
 import anyio
 from aiokafka.partitioner import DefaultPartitioner
 from aiokafka.producer.producer import _missing
-from typing_extensions import Doc, override
+from typing_extensions import override
 
 from faststream.__about__ import SERVICE_NAME
 from faststream._internal.broker import BrokerUsecase
@@ -146,6 +145,7 @@ if TYPE_CHECKING:
             transactional_id: Transactional ID for the producer.
             transaction_timeout_ms: Transaction timeout in milliseconds.
         """
+
         request_timeout_ms: int
         retry_backoff_ms: int
         metadata_max_age_ms: int
@@ -340,10 +340,6 @@ class KafkaBroker(
                 Whether to use FastDepends or not.
             serializer (Optional[SerializerProto]):
                 Serializer to use.
-            _get_dependant (Optional[Callable[..., Any]]):
-                Custom library dependant generator callback.
-            _call_decorators (Iterable[Decorator]):
-                Any custom decorator to apply to wrapped functions.
         """
         if protocol is None:
             if security is not None and security.use_ssl:

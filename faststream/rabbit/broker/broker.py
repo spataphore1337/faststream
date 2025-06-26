@@ -144,8 +144,6 @@ class RabbitBroker(
             log_level: Service messages log level.
             apply_types: Whether to use FastDepends or not.
             serializer: FastDepends-compatible serializer to validate incoming messages.
-            _get_dependant: Custom library dependant generator callback.
-            _call_decorators: Any custom decorator to apply to wrapped functions.
         """
         security_args = parse_security(security)
 

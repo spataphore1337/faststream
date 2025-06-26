@@ -26,7 +26,9 @@ class LogicPublisher(PublisherUsecase[Msg]):
 
     _outer_config: "NatsBrokerConfig"
 
-    def __init__(self, config: "NatsPublisherConfig", specification: "PublisherSpecification") -> None:
+    def __init__(
+        self, config: "NatsPublisherConfig", specification: "PublisherSpecification"
+    ) -> None:
         """Initialize NATS publisher object."""
         super().__init__(config, specification)
 

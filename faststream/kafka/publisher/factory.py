@@ -52,7 +52,7 @@ def create_publisher(
             title_=title_,
             description_=description_,
             include_in_schema=include_in_schema,
-        )
+        ),
     )
 
     if batch:

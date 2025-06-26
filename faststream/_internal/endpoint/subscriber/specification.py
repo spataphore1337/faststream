@@ -23,9 +23,11 @@ if TYPE_CHECKING:
 
 
 T_SpecificationConfig = TypeVar313(
-    "T_SpecificationConfig", bound=SubscriberSpecificationConfig, default=SubscriberSpecificationConfig)
-T_BrokerConfig = TypeVar313(
-    "T_BrokerConfig", bound=BrokerConfig, default=BrokerConfig)
+    "T_SpecificationConfig",
+    bound=SubscriberSpecificationConfig,
+    default=SubscriberSpecificationConfig,
+)
+T_BrokerConfig = TypeVar313("T_BrokerConfig", bound=BrokerConfig, default=BrokerConfig)
 
 
 class SubscriberSpecification(Generic[T_BrokerConfig, T_SpecificationConfig]):
@@ -61,7 +63,9 @@ class SubscriberSpecification(Generic[T_BrokerConfig, T_SpecificationConfig]):
                 msg = "You should setup `Handler` at first."
                 raise SetupError(msg)
 
-            body = parse_handler_params(h.dependant, prefix=f"{self.config.title_ or call_name}:Message")
+            body = parse_handler_params(
+                h.dependant, prefix=f"{self.config.title_ or call_name}:Message"
+            )
             payloads.append((body, to_camelcase(h.name)))
 
         if not self.calls:

@@ -35,7 +35,8 @@ class AsyncAPI3(Specification):
         license: Union["License", "LicenseDict", "AnyDict"] | None = None,
         identifier: str | None = None,
         tags: Sequence[Union["Tag", "TagDict", "AnyDict"]] = (),
-        external_docs: Union["ExternalDocs", "ExternalDocsDict", "AnyDict"] | None = None,
+        external_docs: Union["ExternalDocs", "ExternalDocsDict", "AnyDict"]
+        | None = None,
     ) -> None:
         self.broker = broker
         self.title = title

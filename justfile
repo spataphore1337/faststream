@@ -61,13 +61,13 @@ docs-serve:
 # Linter
 [doc("Ruff check")]
 [group("linter")]
-ruff-check:
-  -docker compose exec -T faststream uv run ruff check --exit-non-zero-on-fix
+ruff-check *params:
+  -docker compose exec -T faststream uv run ruff check --exit-non-zero-on-fix {{params}}
 
 [doc("Ruff format")]
 [group("linter")]
-ruff-format:
-  -docker compose exec -T faststream uv run ruff format
+ruff-format *params:
+  -docker compose exec -T faststream uv run ruff format {{params}}
 
 [doc("Codespell check")]
 [group("linter")]
@@ -82,8 +82,8 @@ linter: ruff-check ruff-format codespell
 # Static analysis
 [doc("Mypy check")]
 [group("static analysis")]
-mypy:
-  -docker compose exec -T faststream uv run mypy
+mypy *params:
+  -docker compose exec -T faststream uv run mypy {{params}}
 
 [doc("Bandit check")]
 [group("static analysis")]

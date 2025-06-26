@@ -64,9 +64,16 @@ class Registrator(Generic[MsgType]):
     def add_middleware(self, middleware: "BrokerMiddleware[MsgType]") -> None:
         """Append BrokerMiddleware to the end of middlewares list.
 
-        Current middleware will be used as a most inner of already existed ones.
+        Current middleware will be used as a most inner of the stack.
         """
         self.config.add_middleware(middleware)
+
+    def insert_middleware(self, middleware: "BrokerMiddleware[MsgType]") -> None:
+        """Insert BrokerMiddleware to the start of middlewares list.
+
+        Current middleware will be used as a most outer of the stack.
+        """
+        self.config.insert_middleware(middleware)
 
     @abstractmethod
     def subscriber(

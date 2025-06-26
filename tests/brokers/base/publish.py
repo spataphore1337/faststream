@@ -271,14 +271,14 @@ class BrokerPublishTestcase(BaseTestcaseConfig):
             await br.start()
             await asyncio.wait(
                 (
-                    asyncio.create_task(br.publish([1, 1.0, 2.0, 3.0], queue)),
+                    asyncio.create_task(br.publish([1, 2.0, 3.0, 4.0], queue)),
                     asyncio.create_task(event.wait()),
                 ),
                 timeout=self.timeout,
             )
 
         assert event.is_set()
-        mock.assert_called_with({"a": 1, "b": 1, "args": (2, 3)})
+        mock.assert_called_with({"a": 1, "b": 2, "args": (3, 4)})
 
     @pytest.mark.asyncio()
     async def test_base_publisher(

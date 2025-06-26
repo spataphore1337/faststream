@@ -1,4 +1,3 @@
-
 from pydantic import AnyHttpUrl
 
 from faststream._internal.basic_types import AnyDict

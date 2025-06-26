@@ -55,6 +55,7 @@ if TYPE_CHECKING:
 
     from faststream._internal.basic_types import AnyDict
     from faststream._internal.broker import BrokerUsecase
+    from faststream._internal.context import ContextRepo
     from faststream._internal.endpoint.call_wrapper import HandlerCallWrapper
     from faststream._internal.endpoint.publisher import PublisherProto
     from faststream._internal.proto import NameRequired
@@ -203,16 +204,16 @@ class StreamRouter(
 
         self._lifespan_started = False
 
-    def _add_api_mq_route(
+    def _subscriber_compatibility_wrapper(
         self,
-        dependencies: Iterable["params.Depends"],
-        response_model: Any,
-        response_model_include: Optional["IncEx"],
-        response_model_exclude: Optional["IncEx"],
-        response_model_by_alias: bool,
-        response_model_exclude_unset: bool,
-        response_model_exclude_defaults: bool,
-        response_model_exclude_none: bool,
+        dependencies: Iterable["params.Depends"] = (),
+        response_model: Any = Default(None),
+        response_model_include: Optional["IncEx"] = None,
+        response_model_exclude: Optional["IncEx"] = None,
+        response_model_by_alias: bool = True,
+        response_model_exclude_unset: bool = False,
+        response_model_exclude_defaults: bool = False,
+        response_model_exclude_none: bool = False,
     ) -> Callable[
         [Callable[..., Any]],
         Callable[["StreamMessage[Any]"], Awaitable[Any]],
@@ -220,7 +221,7 @@ class StreamRouter(
         """Decorator before `broker.subscriber`, that wraps function to FastAPI-compatible one."""
 
         def wrapper(
-            endpoint: Callable[..., Any],
+            endpoint: Callable[..., Any], context: "ContextRepo"
         ) -> Callable[["StreamMessage[Any]"], Awaitable[Any]]:
             """Patch user function to make it FastAPI-compatible."""
             return wrap_callable_to_fastapi_compatible(
@@ -233,7 +234,7 @@ class StreamRouter(
                 response_model_exclude_unset=response_model_exclude_unset,
                 response_model_exclude_defaults=response_model_exclude_defaults,
                 response_model_exclude_none=response_model_exclude_none,
-                config=self.config,
+                context=context,
                 fastapi_config=self.fastapi_config,
             )
 
@@ -265,7 +266,7 @@ class StreamRouter(
         )
 
         sub._call_decorators = (  # type: ignore[attr-defined]
-            self._add_api_mq_route(
+            self._subscriber_compatibility_wrapper(
                 dependencies=dependencies,
                 response_model=response_model,
                 response_model_include=response_model_include,
@@ -275,6 +276,7 @@ class StreamRouter(
                 response_model_exclude_defaults=response_model_exclude_defaults,
                 response_model_exclude_none=response_model_exclude_none,
             ),
+            *sub._call_decorators,
         )
 
         return sub
@@ -369,8 +371,16 @@ class StreamRouter(
 
     def after_startup(
         self,
-        func: Callable[["AppType"], Mapping[str, Any]] | Callable[["AppType"], Awaitable[Mapping[str, Any]]] | Callable[["AppType"], None] | Callable[["AppType"], Awaitable[None]],
-    ) -> Callable[["AppType"], Mapping[str, Any]] | Callable[["AppType"], Awaitable[Mapping[str, Any]]] | Callable[["AppType"], None] | Callable[["AppType"], Awaitable[None]]:
+        func: Callable[["AppType"], Mapping[str, Any]]
+        | Callable[["AppType"], Awaitable[Mapping[str, Any]]]
+        | Callable[["AppType"], None]
+        | Callable[["AppType"], Awaitable[None]],
+    ) -> (
+        Callable[["AppType"], Mapping[str, Any]]
+        | Callable[["AppType"], Awaitable[Mapping[str, Any]]]
+        | Callable[["AppType"], None]
+        | Callable[["AppType"], Awaitable[None]]
+    ):
         """Register a function to be executed after startup."""
         self._after_startup_hooks.append(to_async(func))
         return func
@@ -488,16 +498,8 @@ class StreamRouter(
         if isinstance(router, BrokerRouter):
             for sub in router.subscribers:
                 sub._call_decorators = (  # type: ignore[attr-defined]
-                    self._add_api_mq_route(
-                        dependencies=(),
-                        response_model=Default(None),
-                        response_model_include=None,
-                        response_model_exclude=None,
-                        response_model_by_alias=True,
-                        response_model_exclude_unset=False,
-                        response_model_exclude_defaults=False,
-                        response_model_exclude_none=False,
-                    ),
+                    self._subscriber_compatibility_wrapper(),
+                    *sub._call_decorators,
                 )
 
             self.broker.include_router(router)

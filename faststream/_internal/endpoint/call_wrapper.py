@@ -1,5 +1,5 @@
 import asyncio
-from collections.abc import Awaitable, Callable, Mapping, Reversible, Sequence
+from collections.abc import Awaitable, Callable, Reversible, Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -10,18 +10,16 @@ from typing import (
 from unittest.mock import MagicMock
 
 import anyio
-from fast_depends import inject
-from fast_depends.core import CallModel, build_call_model
 
 from faststream._internal.types import (
     MsgType,
     P_HandlerParams,
     T_HandlerReturn,
 )
-from faststream._internal.utils.functions import to_async
 from faststream.exceptions import SetupError
 
 if TYPE_CHECKING:
+    from fast_depends.core import CallModel
     from fast_depends.dependencies import Dependant
 
     from faststream._internal.basic_types import Decorator
@@ -94,6 +92,22 @@ class HandlerCallWrapper(Generic[MsgType, P_HandlerParams, T_HandlerReturn]):
             self.mock(await message.decode())
         return await self._wrapped_call(message)
 
+    def set_wrapped(
+        self,
+        *,
+        dependencies: Sequence["Dependant"],
+        _call_decorators: Reversible["Decorator"],
+        config: "FastDependsConfig",
+    ) -> "CallModel":
+        dependent = config.build_call(
+            self._original_call,
+            dependencies=dependencies,
+            call_decorators=_call_decorators,
+        )
+        self._original_call = dependent.original_call
+        self._wrapped_call = dependent.wrapped_call
+        return dependent.dependent
+
     async def wait_call(self, timeout: float | None = None) -> None:
         """Waits for a call with an optional timeout."""
         assert (  # nosec B101
@@ -130,6 +144,7 @@ class HandlerCallWrapper(Generic[MsgType, P_HandlerParams, T_HandlerReturn]):
 
         if error:
             self.future.set_exception(error)
+
         else:
             self.future.set_result(result)
 
@@ -139,67 +154,3 @@ class HandlerCallWrapper(Generic[MsgType, P_HandlerParams, T_HandlerReturn]):
 
         if with_mock and self.mock is not None:
             self.mock.reset_mock()
-
-    def set_wrapped(
-        self,
-        *,
-        dependencies: Sequence["Dependant"],
-        _call_decorators: Reversible["Decorator"],
-        config: "FastDependsConfig",
-    ) -> Optional["CallModel"]:
-        call = self._original_call
-        for decor in reversed((*_call_decorators, *config.call_decorators)):
-            call = decor(call)
-        self._original_call = call
-
-        f: Callable[..., Awaitable[Any]] = to_async(call)
-
-        dependent: CallModel | None = None
-        if config.get_dependent is None:
-            assert config.provider
-
-            dependent = build_call_model(
-                f,
-                extra_dependencies=dependencies,
-                dependency_provider=config.provider,
-                serializer_cls=config._serializer,
-            )
-
-            if config.use_fastdepends:
-                wrapper = inject(
-                    func=None,
-                    context__=config.context,
-                )
-                f = wrapper(func=f, model=dependent)
-
-            f = _wrap_decode_message(
-                func=f,
-                params_ln=len(dependent.flat_params),
-            )
-
-        self._wrapped_call = f
-        return dependent
-
-
-def _wrap_decode_message(
-    func: Callable[..., Awaitable[T_HandlerReturn]],
-    params_ln: int,
-) -> Callable[["StreamMessage[MsgType]"], Awaitable[T_HandlerReturn]]:
-    """Wraps a function to decode a message and pass it as an argument to the wrapped function."""
-
-    async def decode_wrapper(message: "StreamMessage[MsgType]") -> T_HandlerReturn:
-        """A wrapper function to decode and handle a message."""
-        msg = await message.decode()
-
-        if params_ln > 1:
-            if isinstance(msg, Mapping):
-                return await func(**msg)
-            if isinstance(msg, Sequence):
-                return await func(*msg)
-        else:
-            return await func(msg)
-
-        msg = "unreachable"
-        raise AssertionError(msg)
-
-    return decode_wrapper

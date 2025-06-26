@@ -45,6 +45,9 @@ class BrokerConfig:
     def add_middleware(self, middleware: "BrokerMiddleware[Any]") -> None:
         self.broker_middlewares = (*self.broker_middlewares, middleware)
 
+    def insert_middleware(self, middleware: "BrokerMiddleware[Any]") -> None:
+        self.broker_middlewares = (middleware, *self.broker_middlewares)
+
 
 class ConfigComposition:
     def __init__(self, *configs: "BrokerConfig") -> None:

@@ -81,7 +81,8 @@ class PublisherUsecase(PublisherProto[MsgType]):
 
     def __call__(
         self,
-        func: Callable[P_HandlerParams, T_HandlerReturn] | HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
+        func: Callable[P_HandlerParams, T_HandlerReturn]
+        | HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn],
     ) -> HandlerCallWrapper[MsgType, P_HandlerParams, T_HandlerReturn]:
         """Decorate user's function by current publisher."""
         handler = super().__call__(func)

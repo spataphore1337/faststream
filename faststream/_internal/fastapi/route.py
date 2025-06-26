@@ -15,7 +15,7 @@ from fast_depends.dependencies import Dependant
 from fastapi.routing import run_endpoint_function, serialize_response
 from starlette.requests import Request
 
-from faststream._internal.context import Context
+from faststream._internal.context import Context, ContextRepo
 from faststream._internal.types import P_HandlerParams, T_HandlerReturn
 from faststream.exceptions import SetupError
 from faststream.response import Response, ensure_response
@@ -26,7 +26,6 @@ from ._compat import (
     raise_fastapi_validation_error,
     solve_faststream_dependency,
 )
-from .config import FastAPIConfig
 from .get_dependant import (
     get_fastapi_native_dependant,
     has_forbidden_types,
@@ -41,8 +40,9 @@ if TYPE_CHECKING:
     from fastapi.types import IncEx
 
     from faststream._internal.basic_types import AnyDict
-    from faststream._internal.di import FastDependsConfig
     from faststream.message import StreamMessage as NativeMessage
+
+    from .config import FastAPIConfig
 
 
 class StreamMessage(Request):
@@ -73,7 +73,7 @@ class StreamMessage(Request):
 def wrap_callable_to_fastapi_compatible(
     user_callable: Callable[P_HandlerParams, T_HandlerReturn],
     *,
-    fastapi_config: FastAPIConfig,
+    fastapi_config: "FastAPIConfig",
     dependencies: Iterable["params.Depends"],
     response_model: Any,
     response_model_include: Optional["IncEx"],
@@ -82,7 +82,7 @@ def wrap_callable_to_fastapi_compatible(
     response_model_exclude_unset: bool,
     response_model_exclude_defaults: bool,
     response_model_exclude_none: bool,
-    config: "FastDependsConfig",
+    context: "ContextRepo",
 ) -> Callable[["NativeMessage[Any]"], Awaitable[Any]]:
     if has_forbidden_types(user_callable, (Dependant,)):
         msg = (
@@ -111,7 +111,9 @@ def wrap_callable_to_fastapi_compatible(
         response_field = None
 
     parsed_callable = build_faststream_to_fastapi_parser(
-        dependent=get_fastapi_native_dependant(user_callable, list(dependencies)),
+        dependent=get_fastapi_native_dependant(
+            user_callable, dependencies=list(dependencies)
+        ),
         fastapi_config=fastapi_config,
         response_field=response_field,
         response_model_include=response_model_include,
@@ -120,7 +122,7 @@ def wrap_callable_to_fastapi_compatible(
         response_model_exclude_unset=response_model_exclude_unset,
         response_model_exclude_defaults=response_model_exclude_defaults,
         response_model_exclude_none=response_model_exclude_none,
-        config=config,
+        context=context,
     )
 
     mark_faststream_decorated(parsed_callable)
@@ -130,7 +132,8 @@ def wrap_callable_to_fastapi_compatible(
 def build_faststream_to_fastapi_parser(
     *,
     dependent: "FastAPIDependant",
-    fastapi_config: FastAPIConfig,
+    fastapi_config: "FastAPIConfig",
+    context: "ContextRepo",
     response_field: Optional["ModelField"],
     response_model_include: Optional["IncEx"],
     response_model_exclude: Optional["IncEx"],
@@ -138,7 +141,6 @@ def build_faststream_to_fastapi_parser(
     response_model_exclude_unset: bool,
     response_model_exclude_defaults: bool,
     response_model_exclude_none: bool,
-    config: "FastDependsConfig",
 ) -> Callable[["NativeMessage[Any]"], Awaitable[Any]]:
     """Creates a session for handling requests."""
     assert dependent.call  # nosec B101
@@ -180,14 +182,14 @@ def build_faststream_to_fastapi_parser(
 
             stream_message = StreamMessage(
                 body=fastapi_body,
-                headers={"context__": config.context, **message.headers},
+                headers={"context__": context, **message.headers},
                 path={**path, **message.path},
             )
 
         else:
             stream_message = StreamMessage(
                 body={},
-                headers={"context__": config.context},
+                headers={"context__": context},
                 path={},
             )
 
@@ -199,7 +201,7 @@ def build_faststream_to_fastapi_parser(
 def make_fastapi_execution(
     *,
     dependent: "FastAPIDependant",
-    fastapi_config: FastAPIConfig,
+    fastapi_config: "FastAPIConfig",
     response_field: Optional["ModelField"],
     response_model_include: Optional["IncEx"],
     response_model_exclude: Optional["IncEx"],

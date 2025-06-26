@@ -1,14 +1,11 @@
 from collections.abc import Awaitable, Callable, Iterable, Sequence
 from typing import (
     TYPE_CHECKING,
-    Annotated,
     Any,
     Literal,
     Optional,
     Union,
 )
-
-from typing_extensions import Doc, deprecated
 
 from faststream._internal.broker.router import (
     ArgsContainer,
@@ -110,7 +107,8 @@ class KafkaRoute(SubscriberRoute):
 
     def __init__(
         self,
-        call: Callable[..., "SendableMessage"] | Callable[..., Awaitable["SendableMessage"]],
+        call: Callable[..., "SendableMessage"]
+        | Callable[..., Awaitable["SendableMessage"]],
         *topics: str,
         publishers: Iterable[KafkaPublisher] = (),
         partitions: Sequence["TopicPartition"] = (),
@@ -129,7 +127,9 @@ class KafkaRoute(SubscriberRoute):
         max_poll_interval_ms: int = 5 * 60 * 1000,
         session_timeout_ms: int = 10 * 1000,
         heartbeat_interval_ms: int = 3 * 1000,
-        isolation_level: Literal["read_uncommitted", "read_committed"] = "read_uncommitted",
+        isolation_level: Literal[
+            "read_uncommitted", "read_committed"
+        ] = "read_uncommitted",
         batch: bool = False,
         max_records: int | None = None,
         # broker args

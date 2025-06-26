@@ -1,4 +1,3 @@
-
 from nats.aio.msg import Msg
 from nats.js.api import ObjectInfo
 from nats.js.kv import KeyValue

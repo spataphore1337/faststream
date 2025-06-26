@@ -1,6 +1,6 @@
 import logging
+from abc import abstractmethod
 from collections.abc import AsyncIterator, Callable, Iterable, Sequence
-from abc import ABC, abstractmethod
 from itertools import chain
 from typing import TYPE_CHECKING, Any, Optional, cast
 

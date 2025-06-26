@@ -1,7 +1,6 @@
 from collections.abc import Iterable, Sequence
 from typing import (
     TYPE_CHECKING,
-    Annotated,
     Any,
     Literal,
     Optional,
@@ -10,7 +9,7 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Doc, deprecated, override
+from typing_extensions import override
 
 from faststream._internal.broker.abc_broker import Registrator
 from faststream._internal.constants import EMPTY

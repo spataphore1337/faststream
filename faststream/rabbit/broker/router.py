@@ -188,7 +188,8 @@ class RabbitRoute(SubscriberRoute):
     def __init__(
         self,
         call: Annotated[
-            Callable[..., "AioPikaSendableMessage"] | Callable[..., Awaitable["AioPikaSendableMessage"]],
+            Callable[..., "AioPikaSendableMessage"]
+            | Callable[..., Awaitable["AioPikaSendableMessage"]],
             Doc(
                 "Message handler function "
                 "to wrap the same with `@broker.subscriber(...)` way.",

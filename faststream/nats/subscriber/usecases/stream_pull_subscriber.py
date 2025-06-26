@@ -50,7 +50,9 @@ class PullStreamSubscriber(
         stream: "JStream",
     ) -> None:
         super().__init__(
-            config, specification, calls,
+            config,
+            specification,
+            calls,
             # basic args
             queue=queue,
             stream=stream,

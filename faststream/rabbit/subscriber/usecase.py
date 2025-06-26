@@ -36,7 +36,12 @@ class RabbitSubscriber(SubscriberUsecase["IncomingMessage"]):
     _consumer_tag: str | None
     _queue_obj: Optional["RobustQueue"]
 
-    def __init__(self, config: "RabbitSubscriberConfig", specification: "RabbitSubscriberSpecificationConfig", calls: "CallsCollection") -> None:
+    def __init__(
+        self,
+        config: "RabbitSubscriberConfig",
+        specification: "RabbitSubscriberSpecificationConfig",
+        calls: "CallsCollection",
+    ) -> None:
         parser = AioPikaParser(pattern=config.queue.path_regex)
         config.decoder = parser.decode_message
         config.parser = parser.parse_message

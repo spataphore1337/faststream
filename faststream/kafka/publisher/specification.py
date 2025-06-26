@@ -7,7 +7,9 @@ from faststream.specification.schema.bindings import ChannelBinding, kafka
 from .config import KafkaPublisherSpecificationConfig
 
 
-class KafkaPublisherSpecification(PublisherSpecification[KafkaBrokerConfig, KafkaPublisherSpecificationConfig]):
+class KafkaPublisherSpecification(
+    PublisherSpecification[KafkaBrokerConfig, KafkaPublisherSpecificationConfig]
+):
     @property
     def topic(self) -> str:
         return f"{self._outer_config.prefix}{self.config.topic}"

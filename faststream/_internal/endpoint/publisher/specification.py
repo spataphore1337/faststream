@@ -24,9 +24,11 @@ if TYPE_CHECKING:
 
 
 T_SpecificationConfig = TypeVar313(
-    "T_SpecificationConfig", bound=PublisherSpecificationConfig, default=SubscriberSpecificationConfig)
-T_BrokerConfig = TypeVar313(
-    "T_BrokerConfig", bound=BrokerConfig, default=BrokerConfig)
+    "T_SpecificationConfig",
+    bound=PublisherSpecificationConfig,
+    default=SubscriberSpecificationConfig,
+)
+T_BrokerConfig = TypeVar313("T_BrokerConfig", bound=BrokerConfig, default=BrokerConfig)
 
 
 class PublisherSpecification(Generic[T_BrokerConfig, T_SpecificationConfig]):

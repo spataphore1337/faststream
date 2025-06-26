@@ -81,22 +81,11 @@ class HandlerItem(Generic[MsgType]):
             self.item_parser = parser
             self.item_decoder = decoder
 
-            dependencies = (*broker_dependencies, *self.dependencies)
-
-            dependant = self.handler.set_wrapped(
-                dependencies=dependencies,
+            self.dependant = self.handler.set_wrapped(
+                dependencies=(*broker_dependencies, *self.dependencies),
                 _call_decorators=_call_decorators,
                 config=config,
             )
-
-            if config.get_dependent is None:
-                self.dependant = dependant
-
-            else:
-                self.dependant = config.get_dependent(
-                    self.handler._original_call,
-                    dependencies,
-                )
 
     @property
     def name(self) -> str:

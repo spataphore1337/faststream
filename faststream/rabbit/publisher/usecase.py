@@ -31,7 +31,11 @@ class RabbitPublisher(PublisherUsecase[IncomingMessage]):
 
     _outer_config: "RabbitBrokerConfig"
 
-    def __init__(self, config: "RabbitPublisherConfig", specification: "RabbitPublisherSpecification") -> None:
+    def __init__(
+        self,
+        config: "RabbitPublisherConfig",
+        specification: "RabbitPublisherSpecification",
+    ) -> None:
         super().__init__(config, specification)
 
         self.queue = config.queue

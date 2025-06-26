@@ -55,10 +55,7 @@ class BasePublisherProto(Protocol):
         ...
 
 
-class PublisherProto(
-    Endpoint[MsgType],
-    BasePublisherProto
-):
+class PublisherProto(Endpoint[MsgType], BasePublisherProto):
     _middlewares: Sequence["PublisherMiddleware"]
 
     @abstractmethod

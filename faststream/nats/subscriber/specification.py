@@ -7,7 +7,9 @@ from faststream.specification.schema.bindings import ChannelBinding, nats
 from .config import NatsSubscriberSpecificationConfig
 
 
-class NatsSubscriberSpecification(SubscriberSpecification[NatsBrokerConfig, NatsSubscriberSpecificationConfig]):
+class NatsSubscriberSpecification(
+    SubscriberSpecification[NatsBrokerConfig, NatsSubscriberSpecificationConfig]
+):
     @property
     def subject(self) -> str:
         return f"{self._outer_config.prefix}{self.config.subject}"

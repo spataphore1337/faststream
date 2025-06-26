@@ -88,7 +88,10 @@ def create_subscriber(
     specification: RedisSubscriberSpecification
     if subscriber_config.channel_sub:
         specification = ChannelSubscriberSpecification(
-            config, specification_config, calls, channel=subscriber_config.channel_sub,
+            config,
+            specification_config,
+            calls,
+            channel=subscriber_config.channel_sub,
         )
 
         subscriber_config._ack_policy = AckPolicy.DO_NOTHING
@@ -96,12 +99,12 @@ def create_subscriber(
         if max_workers > 1:
             return ChannelConcurrentSubscriber(
                 subscriber_config,
-                specification, calls,
+                specification,
+                calls,
                 max_workers=max_workers,
             )
 
-        return ChannelSubscriber(subscriber_config,
-                specification, calls)
+        return ChannelSubscriber(subscriber_config, specification, calls)
 
     if subscriber_config.stream_sub:
         specification = StreamSubscriberSpecification(
@@ -109,18 +112,17 @@ def create_subscriber(
         )
 
         if subscriber_config.stream_sub.batch:
-            return StreamBatchSubscriber(subscriber_config,
-                specification, calls)
+            return StreamBatchSubscriber(subscriber_config, specification, calls)
 
         if max_workers > 1:
             return StreamConcurrentSubscriber(
                 subscriber_config,
-                specification, calls,
+                specification,
+                calls,
                 max_workers=max_workers,
             )
 
-        return StreamSubscriber(subscriber_config,
-                specification, calls)
+        return StreamSubscriber(subscriber_config, specification, calls)
 
     if subscriber_config.list_sub:
         specification = ListSubscriberSpecification(
@@ -128,18 +130,17 @@ def create_subscriber(
         )
 
         if subscriber_config.list_sub.batch:
-            return ListBatchSubscriber(subscriber_config,
-                specification, calls)
+            return ListBatchSubscriber(subscriber_config, specification, calls)
 
         if max_workers > 1:
             return ListConcurrentSubscriber(
                 subscriber_config,
-                specification, calls,
+                specification,
+                calls,
                 max_workers=max_workers,
             )
 
-        return ListSubscriber(subscriber_config,
-                specification, calls)
+        return ListSubscriber(subscriber_config, specification, calls)
 
     raise SetupError(INCORRECT_SETUP_MSG)
 

@@ -1,4 +1,3 @@
-
 from typing import TypeAlias
 
 import aio_pika

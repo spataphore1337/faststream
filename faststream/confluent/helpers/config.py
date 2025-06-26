@@ -317,7 +317,8 @@ class ConfluentFastConfig:
         request_timeout_ms: int = 40 * 1000,
         acks: Literal[0, 1, -1, "all"] = EMPTY,
         compression_type: Literal["gzip", "snappy", "lz4", "zstd"] | None = None,
-        partitioner: str | Callable[[bytes, list[Any], list[Any]], Any] = "consistent_random",
+        partitioner: str
+        | Callable[[bytes, list[Any], list[Any]], Any] = "consistent_random",
         max_request_size: int = 1024 * 1024,
         linger_ms: int = 0,
         enable_idempotence: bool = False,

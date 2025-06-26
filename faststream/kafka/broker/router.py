@@ -143,7 +143,8 @@ class KafkaRoute(SubscriberRoute):
     def __init__(
         self,
         call: Annotated[
-            Callable[..., "SendableMessage"] | Callable[..., Awaitable["SendableMessage"]],
+            Callable[..., "SendableMessage"]
+            | Callable[..., Awaitable["SendableMessage"]],
             Doc(
                 "Message handler function "
                 "to wrap the same with `@broker.subscriber(...)` way.",

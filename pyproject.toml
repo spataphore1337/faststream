@@ -52,11 +52,11 @@ classifiers = [
     "Framework :: Pydantic :: 2",
 ]
 
-dynamic = ["version"]
+version = "0.5.43"
 
 dependencies = [
     "anyio>=3.7.1,<5",
-    "fast-depends[pydantic]>=3.0.0a5,<4.0.0",
+    "fast-depends[pydantic]>=3.0.0a9,<4.0.0",
     "typing-extensions>=4.8.0",
 ]
 

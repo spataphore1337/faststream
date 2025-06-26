@@ -3,7 +3,6 @@
 References: https://github.com/asyncapi/bindings/tree/master/amqp
 """
 
-
 from pydantic import BaseModel, PositiveInt
 from typing_extensions import Self
 

@@ -1,5 +1,3 @@
-
-
 from faststream.exceptions import SetupError
 
 from .list_sub import ListSub

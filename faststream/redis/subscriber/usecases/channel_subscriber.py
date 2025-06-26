@@ -41,7 +41,12 @@ Offset: TypeAlias = bytes
 class ChannelSubscriber(LogicSubscriber):
     subscription: RPubSub | None
 
-    def __init__(self, config: "RedisSubscriberConfig", specification: "RedisSubscriberSpecification", calls: "CallsCollection[Any]") -> None:
+    def __init__(
+        self,
+        config: "RedisSubscriberConfig",
+        specification: "RedisSubscriberSpecification",
+        calls: "CallsCollection[Any]",
+    ) -> None:
         assert config.channel_sub  # nosec B101
         parser = RedisPubSubParser(pattern=config.channel_sub.path_regex)
         config.decoder = parser.decode_message

@@ -1,4 +1,3 @@
-
 from opentelemetry.metrics import Meter, MeterProvider
 from opentelemetry.trace import TracerProvider
 

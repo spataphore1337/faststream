@@ -1,4 +1,3 @@
-
 from faststream._internal.endpoint.subscriber import SubscriberSpecification
 from faststream.confluent.configs import KafkaBrokerConfig
 from faststream.specification.asyncapi.utils import resolve_payloads
@@ -8,14 +7,18 @@ from faststream.specification.schema.bindings import ChannelBinding, kafka
 from .config import KafkaSubscriberSpecificationConfig
 
 
-class KafkaSubscriberSpecification(SubscriberSpecification[KafkaBrokerConfig, KafkaSubscriberSpecificationConfig]):
+class KafkaSubscriberSpecification(
+    SubscriberSpecification[KafkaBrokerConfig, KafkaSubscriberSpecificationConfig]
+):
     @property
     def topics(self) -> list[str]:
         topics: set[str] = set()
 
         topics.update(f"{self._outer_config.prefix}{t}" for t in self.config.topics)
 
-        topics.update(f"{self._outer_config.prefix}{p.topic}" for p in self.config.partitions)
+        topics.update(
+            f"{self._outer_config.prefix}{p.topic}" for p in self.config.partitions
+        )
 
         return list(topics)
 

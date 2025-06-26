@@ -16,7 +16,9 @@ from faststream.specification.schema.bindings import (
 from .config import RabbitPublisherSpecificationConfig
 
 
-class RabbitPublisherSpecification(PublisherSpecification[RabbitBrokerConfig, RabbitPublisherSpecificationConfig]):
+class RabbitPublisherSpecification(
+    PublisherSpecification[RabbitBrokerConfig, RabbitPublisherSpecificationConfig]
+):
     @property
     def name(self) -> str:
         if self.config.title_:

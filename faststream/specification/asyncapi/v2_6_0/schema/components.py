@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel
 
 from faststream._internal._compat import (

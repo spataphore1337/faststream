@@ -47,7 +47,15 @@ class StandardDataclass(Protocol):
     __dataclass_fields__: ClassVar[AnyDict]
 
 
-BaseSendableMessage: TypeAlias = JsonDecodable | Decimal | datetime | StandardDataclass | SendableTable | SendableArray | None
+BaseSendableMessage: TypeAlias = (
+    JsonDecodable
+    | Decimal
+    | datetime
+    | StandardDataclass
+    | SendableTable
+    | SendableArray
+    | None
+)
 
 try:
     from faststream._internal._compat import BaseModel
