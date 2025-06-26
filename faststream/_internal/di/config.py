@@ -67,7 +67,7 @@ class FastDependsConfig:
         call_decorators: Reversible["Decorator"],
     ) -> BuiltDependant:
         for d in reversed((*call_decorators, *self.call_decorators)):
-            call = d(call, self.context)
+            call = d(call)
 
         wrapped_call: Callable[..., Awaitable[Any]] = to_async(call)
 
@@ -102,9 +102,10 @@ def _unwrap_message_to_fast_depends_decorator(
     dependent: "CallModel",
 ) -> Callable[["StreamMessage[Any]"], Awaitable[Any]]:
     dependant_params = dependent.flat_params
-    if not (is_multi_params := len(dependant_params) > 1):
-        if option := next(iter(dependant_params), None):
-            is_multi_params = option.kind is inspect.Parameter.VAR_POSITIONAL
+    if not (is_multi_params := len(dependant_params) > 1) and (
+        option := next(iter(dependant_params), None)
+    ):
+        is_multi_params = option.kind is inspect.Parameter.VAR_POSITIONAL
 
     if is_multi_params:
 
@@ -124,7 +125,6 @@ def _unwrap_message_to_fast_depends_decorator(
 
         async def decode_wrapper(message: "StreamMessage[Any]") -> Any:
             msg = await message.decode()
-
             return await func(msg)
 
     return decode_wrapper

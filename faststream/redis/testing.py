@@ -128,7 +128,7 @@ class FakeProducer(RedisFastProducer):
             reply_to=cmd.reply_to,
             correlation_id=cmd.correlation_id or gen_cor_id(),
             headers=cmd.headers,
-            serializer=self.broker.config.fd_config._serializer
+            serializer=self.broker.config.fd_config._serializer,
         )
 
         destination = _make_destionation_kwargs(cmd)
@@ -211,7 +211,7 @@ class FakeProducer(RedisFastProducer):
                 message=result.body,
                 headers=result.headers,
                 correlation_id=result.correlation_id or "",
-                serializer=self.broker.config.fd_config._serializer
+                serializer=self.broker.config.fd_config._serializer,
             ),
             channel="",
             pattern=None,
@@ -224,14 +224,14 @@ def build_message(
     correlation_id: str,
     reply_to: str = "",
     headers: Optional["AnyDict"] = None,
-    serializer: Optional["SerializerProto"] = None
+    serializer: Optional["SerializerProto"] = None,
 ) -> bytes:
     return RawMessage.encode(
         message=message,
         reply_to=reply_to,
         headers=headers,
         correlation_id=correlation_id,
-        serializer=serializer
+        serializer=serializer,
     )
 
 

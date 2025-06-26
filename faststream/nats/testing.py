@@ -105,7 +105,7 @@ class FakeProducer(NatsFastProducer):
             headers=cmd.headers,
             correlation_id=cmd.correlation_id,
             reply_to=cmd.reply_to,
-            serializer=self.broker.config.fd_config._serializer
+            serializer=self.broker.config.fd_config._serializer,
         )
 
         for handler in _find_handler(
@@ -132,7 +132,7 @@ class FakeProducer(NatsFastProducer):
             subject=cmd.destination,
             headers=cmd.headers,
             correlation_id=cmd.correlation_id,
-            serializer=self.broker.config.fd_config._serializer
+            serializer=self.broker.config.fd_config._serializer,
         )
 
         for handler in _find_handler(
@@ -165,7 +165,7 @@ class FakeProducer(NatsFastProducer):
             message=result.body,
             headers=result.headers,
             correlation_id=result.correlation_id,
-            serializer=self.broker.config.fd_config._serializer
+            serializer=self.broker.config.fd_config._serializer,
         )
 
 

@@ -52,7 +52,7 @@ class RedisFastProducer(ProducerProto):
             reply_to=cmd.reply_to,
             headers=cmd.headers,
             correlation_id=cmd.correlation_id or "",
-            serializer=self.serializer
+            serializer=self.serializer,
         )
 
         return await self.__publish(msg, cmd)
@@ -72,7 +72,7 @@ class RedisFastProducer(ProducerProto):
             reply_to=reply_to,
             headers=cmd.headers,
             correlation_id=cmd.correlation_id or "",
-            serializer=self.serializer
+            serializer=self.serializer,
         )
 
         await self.__publish(msg, cmd)
@@ -109,7 +109,7 @@ class RedisFastProducer(ProducerProto):
                 correlation_id=cmd.correlation_id or "",
                 reply_to=cmd.reply_to,
                 headers=cmd.headers,
-                serializer=self.serializer
+                serializer=self.serializer,
             )
             for msg in cmd.batch_bodies
         ]

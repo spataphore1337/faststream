@@ -135,7 +135,7 @@ def build_message(
     message_type: str | None = None,
     user_id: str | None = None,
     app_id: str | None = None,
-    serializer: Optional["SerializerProto"] = None
+    serializer: Optional["SerializerProto"] = None,
 ) -> PatchedMessage:
     """Build a patched RabbitMQ message for testing."""
     que = RabbitQueue.validate(queue)
@@ -159,7 +159,7 @@ def build_message(
         message_type=message_type,
         user_id=user_id,
         app_id=app_id,
-        serializer=serializer
+        serializer=serializer,
     )
 
     return PatchedMessage(

@@ -55,7 +55,6 @@ if TYPE_CHECKING:
 
     from faststream._internal.basic_types import AnyDict
     from faststream._internal.broker import BrokerUsecase
-    from faststream._internal.context import ContextRepo
     from faststream._internal.endpoint.call_wrapper import HandlerCallWrapper
     from faststream._internal.endpoint.publisher import PublisherProto
     from faststream._internal.proto import NameRequired
@@ -221,7 +220,7 @@ class StreamRouter(
         """Decorator before `broker.subscriber`, that wraps function to FastAPI-compatible one."""
 
         def wrapper(
-            endpoint: Callable[..., Any], context: "ContextRepo"
+            endpoint: Callable[..., Any],
         ) -> Callable[["StreamMessage[Any]"], Awaitable[Any]]:
             """Patch user function to make it FastAPI-compatible."""
             return wrap_callable_to_fastapi_compatible(
@@ -234,7 +233,7 @@ class StreamRouter(
                 response_model_exclude_unset=response_model_exclude_unset,
                 response_model_exclude_defaults=response_model_exclude_defaults,
                 response_model_exclude_none=response_model_exclude_none,
-                context=context,
+                context=self.context,
                 fastapi_config=self.fastapi_config,
             )
 

@@ -142,7 +142,7 @@ class FakeProducer(AioKafkaFastProducer):
             headers=cmd.headers,
             correlation_id=cmd.correlation_id,
             reply_to=cmd.reply_to,
-            serializer=self.broker.config.fd_config._serializer
+            serializer=self.broker.config.fd_config._serializer,
         )
 
         for handler in _find_handler(
@@ -169,7 +169,7 @@ class FakeProducer(AioKafkaFastProducer):
             timestamp_ms=cmd.timestamp_ms,
             headers=cmd.headers,
             correlation_id=cmd.correlation_id,
-            serializer=self.broker.config.fd_config._serializer
+            serializer=self.broker.config.fd_config._serializer,
         )
 
         for handler in _find_handler(
@@ -207,7 +207,7 @@ class FakeProducer(AioKafkaFastProducer):
                     headers=cmd.headers,
                     correlation_id=cmd.correlation_id,
                     reply_to=cmd.reply_to,
-                    serializer=self.broker.config.fd_config._serializer
+                    serializer=self.broker.config.fd_config._serializer,
                 )
                 for message in cmd.batch_bodies
             )
@@ -232,7 +232,7 @@ class FakeProducer(AioKafkaFastProducer):
             message=result.body,
             headers=result.headers,
             correlation_id=result.correlation_id,
-            serializer=self.broker.config.fd_config._serializer
+            serializer=self.broker.config.fd_config._serializer,
         )
 
 
@@ -246,7 +246,7 @@ def build_message(
     correlation_id: str | None = None,
     *,
     reply_to: str = "",
-    serializer: Optional["SerializerProto"]
+    serializer: Optional["SerializerProto"],
 ) -> "ConsumerRecord":
     """Build a Kafka ConsumerRecord for a sendable message."""
     msg, content_type = encode_message(message, serializer=serializer)

@@ -59,7 +59,7 @@ class RawMessage:
         reply_to: str | None,
         headers: Optional["AnyDict"],
         correlation_id: str,
-        serializer: Optional["SerializerProto"] = None
+        serializer: Optional["SerializerProto"] = None,
     ) -> "RawMessage":
         payload, content_type = encode_message(message, serializer=serializer)
 
@@ -89,14 +89,14 @@ class RawMessage:
         reply_to: str | None,
         headers: Optional["AnyDict"],
         correlation_id: str,
-        serializer: Optional["SerializerProto"] = None
+        serializer: Optional["SerializerProto"] = None,
     ) -> bytes:
         msg = cls.build(
             message=message,
             reply_to=reply_to,
             headers=headers,
             correlation_id=correlation_id,
-            serializer=serializer
+            serializer=serializer,
         )
 
         return json_dumps({

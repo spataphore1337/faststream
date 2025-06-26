@@ -52,7 +52,7 @@ classifiers = [
     "Framework :: Pydantic :: 2",
 ]
 
-version = "0.5.43"
+version = "0.6.0rc0"
 
 dependencies = [
     "anyio>=3.7.1,<5",

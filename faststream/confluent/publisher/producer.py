@@ -24,7 +24,11 @@ if TYPE_CHECKING:
 class AsyncConfluentFastProducer(ProducerProto):
     """A class to represent Kafka producer."""
 
-    def connect(self, producer: "AsyncConfluentProducer", serializer: Optional["SerializerProto"]) -> None: ...
+    def connect(
+        self,
+        producer: "AsyncConfluentProducer",
+        serializer: Optional["SerializerProto"],
+    ) -> None: ...
 
     async def disconnect(self) -> None: ...
 
@@ -54,7 +58,11 @@ class AsyncConfluentFastProducer(ProducerProto):
 
 
 class FakeConfluentFastProducer(AsyncConfluentFastProducer):
-    def connect(self, producer: "AsyncConfluentProducer", serializer: Optional["SerializerProto"]) -> None:
+    def connect(
+        self,
+        producer: "AsyncConfluentProducer",
+        serializer: Optional["SerializerProto"],
+    ) -> None:
         raise NotImplementedError
 
     async def disconnect(self) -> None:
@@ -107,7 +115,11 @@ class AsyncConfluentFastProducerImpl(ProducerProto):
         self._parser = resolve_custom_func(parser, default.parse_message)
         self._decoder = resolve_custom_func(decoder, default.decode_message)
 
-    def connect(self, producer: "AsyncConfluentProducer", serializer: Optional["SerializerProto"]) -> None:
+    def connect(
+        self,
+        producer: "AsyncConfluentProducer",
+        serializer: Optional["SerializerProto"],
+    ) -> None:
         self._producer = RealProducer(producer)
         self.serializer = serializer
 
