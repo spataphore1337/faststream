@@ -136,6 +136,7 @@ testing = [
     "pydantic-settings>=2.0.0,<3.0.0",
     "PyYAML==6.0.2",
     "email-validator==2.2.0",
+    "msgspec",
     "uvicorn>=0.34.3; python_version >= '3.9'",
     "uvicorn==0.33.0; python_version < '3.9'",
     "psutil==7.0.0",

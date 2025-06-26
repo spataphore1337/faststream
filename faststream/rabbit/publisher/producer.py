@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from aio_pika import IncomingMessage, RobustQueue
     from aio_pika.abc import AbstractIncomingMessage, TimeoutType
     from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
+    from fast_depends.library.serializer import SerializerProto
 
     from faststream._internal.types import (
         AsyncCallable,
@@ -52,7 +53,7 @@ class RealLock(LockState):
 
 
 class AioPikaFastProducer(ProducerProto):
-    def connect(self) -> None: ...
+    def connect(self, serializer: Optional["SerializerProto"] = None) -> None: ...
 
     def disconnect(self) -> None: ...
 
@@ -81,7 +82,7 @@ class FakeAioPikaFastProducer(AioPikaFastProducer):
     def __bool__(self) -> bool:
         return False
 
-    def connect(self) -> None:
+    def connect(self, serializer: Optional["SerializerProto"] = None) -> None:
         raise NotImplementedError
 
     def disconnect(self) -> None:
@@ -125,16 +126,18 @@ class AioPikaFastProducerImpl(AioPikaFastProducer):
         self.declarer = declarer
 
         self.__lock: LockState = LockUnset()
+        self.serializer: SerializerProto | None = None
 
         default_parser = AioPikaParser()
         self._parser = resolve_custom_func(parser, default_parser.parse_message)
         self._decoder = resolve_custom_func(decoder, default_parser.decode_message)
 
-    def connect(self) -> None:
+    def connect(self, serializer: Optional["SerializerProto"] = None) -> None:
         """Lock initialization.
 
         Should be called in async context due `anyio.Lock` object can't be created outside event loop.
         """
+        self.serializer = serializer
         self.__lock = RealLock()
 
     def disconnect(self) -> None:
@@ -189,7 +192,7 @@ class AioPikaFastProducerImpl(AioPikaFastProducer):
         timeout: "TimeoutType" = None,
         **message_options: Unpack["MessageOptions"],
     ) -> Optional["aiormq.abc.ConfirmationFrameType"]:
-        message = AioPikaParser.encode_message(message=message, **message_options)
+        message = AioPikaParser.encode_message(message=message, serializer=self.serializer, **message_options)
 
         exchange_obj = await self.declarer.declare_exchange(
             exchange=exchange,
