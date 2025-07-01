@@ -42,7 +42,7 @@ jobs:
       - run: |
           if [ "$IS_RC" == "False" ]; then
             cd docs && mike deploy -F mkdocs.yml --update-aliases $VERSION latest
-            mike set-default --push --allow-empty -F mkdocs.yml latest
+            mike set-default --allow-empty -F mkdocs.yml latest
           else
-            cd docs && mike deploy --push -F mkdocs.yml --update-aliases $VERSION
+            cd docs && mike deploy -F mkdocs.yml --update-aliases $VERSION
           fi
