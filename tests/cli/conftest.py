@@ -117,6 +117,9 @@ class CLIThread:
     def wait_for_stderr(self, message: str, timeout: float = 2.0) -> bool:
         assert self.process.stderr
 
+        if message in self.stderr:
+            return True
+
         expiration_time = time.time() + timeout
 
         while time.time() < expiration_time:
