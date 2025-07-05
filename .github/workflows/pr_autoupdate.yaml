@@ -1,4 +1,4 @@
-name: Run linting, update API References and commit changes
+name: Run linting, update API References
 
 on:
   pull_request_target:
@@ -35,7 +35,6 @@ jobs:
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         shell: bash
-        # should install with `-e`
         run: |
           set -ux
           uv pip install --system -e .[dev]
@@ -52,3 +51,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "docs: generate API References"
+          commit_user_name: faststream-actions[bot]
+          commit_user_email: faststream-actions[bot]@users.noreply.github.com
+          commit_author: faststream-actions[bot] <faststream-actions[bot]@users.noreply.github.com>
