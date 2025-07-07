@@ -13,6 +13,7 @@ concurrency:
 
 permissions:
   contents: write
+  workflows: write
 
 jobs:
   check-linting-and-docs-changes:
@@ -21,17 +22,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.AUTOMERGE_TOKEN }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.head_ref }}
+
       - uses: astral-sh/setup-uv@v6
         with:
           version: "latest"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Set $PY environment variable
         run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
+
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         shell: bash
