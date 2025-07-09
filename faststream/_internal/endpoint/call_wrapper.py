@@ -49,7 +49,7 @@ class HandlerCallWrapper(Generic[MsgType, P_HandlerParams, T_HandlerReturn]):
 
     _wrapped_call: Callable[..., Awaitable[Any]] | None
     _original_call: Callable[P_HandlerParams, T_HandlerReturn]
-    _publishers: list["PublisherProto[MsgType]"]
+    _publishers: list["PublisherProto[Any]"]
 
     __slots__ = (
         "_original_call",

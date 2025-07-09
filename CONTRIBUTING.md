@@ -94,6 +94,7 @@ just test "-vv -s"
 
 In your project, some tests are grouped under specific pytest marks:
 
+* **confluent**
 * **slow**
 * **rabbit**
 * **kafka**

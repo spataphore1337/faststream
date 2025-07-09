@@ -15,7 +15,7 @@ import aiokafka
 import anyio
 from aiokafka.partitioner import DefaultPartitioner
 from aiokafka.producer.producer import _missing
-from typing_extensions import override
+from typing_extensions import deprecated, override
 
 from faststream.__about__ import SERVICE_NAME
 from faststream._internal.broker import BrokerUsecase
@@ -52,7 +52,7 @@ if TYPE_CHECKING:
         LoggerProto,
         SendableMessage,
     )
-    from faststream._internal.broker.abc_broker import Registrator
+    from faststream._internal.broker.registrator import Registrator
     from faststream._internal.types import (
         BrokerMiddleware,
         CustomCallable,
@@ -436,17 +436,32 @@ class KafkaBroker(
     @override
     async def _connect(self) -> Callable[..., aiokafka.AIOKafkaConsumer]:
         await self.config.connect(**self._connection_kwargs)
-        return self.config.builder
+        return self.config.broker_config.builder
 
+    async def stop(
+        self,
+        exc_type: type[BaseException] | None = None,
+        exc_val: BaseException | None = None,
+        exc_tb: Optional["TracebackType"] = None,
+    ) -> None:
+        await super().stop(exc_type, exc_val, exc_tb)
+        await self.config.disconnect()
+        self._connection = None
+
+    @deprecated(
+        "Deprecated in **FastStream 0.5.44**. "
+        "Please, use `stop` method instead. "
+        "Method `close` will be removed in **FastStream 0.7.0**.",
+        category=DeprecationWarning,
+        stacklevel=1,
+    )
     async def close(
         self,
         exc_type: type[BaseException] | None = None,
         exc_val: BaseException | None = None,
         exc_tb: Optional["TracebackType"] = None,
     ) -> None:
-        await super().close(exc_type, exc_val, exc_tb)
-        await self.config.disconnect()
-        self._connection = None
+        await self.stop(exc_type, exc_val, exc_tb)
 
     async def start(self) -> None:
         """Connect broker to Kafka and startup all subscribers."""
@@ -605,7 +620,7 @@ class KafkaBroker(
         )
         return msg
 
-    @overload
+    @overload  # type: ignore[override]
     async def publish_batch(
         self,
         *messages: "SendableMessage",

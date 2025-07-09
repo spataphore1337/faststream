@@ -5,6 +5,7 @@ from typing import (
     Annotated,
     Optional,
     Union,
+    cast,
 )
 
 import anyio
@@ -24,12 +25,14 @@ from nats.aio.client import (
 from nats.aio.msg import Msg
 from nats.errors import Error
 from nats.js.errors import BadRequestError
-from typing_extensions import Doc, overload, override
+from typing_extensions import Doc, deprecated, overload, override
 
 from faststream.__about__ import SERVICE_NAME
+from faststream._internal.basic_types import SendableMessage
 from faststream._internal.broker import BrokerUsecase
 from faststream._internal.constants import EMPTY
 from faststream._internal.di import FastDependsConfig
+from faststream.exceptions import FeatureNotSupportedException
 from faststream.message import gen_cor_id
 from faststream.nats.configs import NatsBrokerConfig
 from faststream.nats.publisher.producer import (
@@ -64,13 +67,13 @@ if TYPE_CHECKING:
 
     from faststream._internal.basic_types import (
         LoggerProto,
-        SendableMessage,
     )
-    from faststream._internal.broker.abc_broker import Registrator
+    from faststream._internal.broker.registrator import Registrator
     from faststream._internal.types import (
         BrokerMiddleware,
         CustomCallable,
     )
+    from faststream.nats.helpers import KVBucketDeclarer, OSBucketDeclarer
     from faststream.nats.message import NatsMessage
     from faststream.nats.schemas import PubAck
     from faststream.security import BaseSecurity
@@ -514,19 +517,34 @@ class NatsBroker(
         self.config.connect(connection)
         return connection
 
-    async def close(
+    async def stop(
         self,
         exc_type: type[BaseException] | None = None,
         exc_val: BaseException | None = None,
         exc_tb: Optional["TracebackType"] = None,
     ) -> None:
-        await super().close(exc_type, exc_val, exc_tb)
+        await super().stop(exc_type, exc_val, exc_tb)
 
         if self._connection is not None:
             await self._connection.drain()
             self._connection = None
 
         self.config.disconnect()
+
+    @deprecated(
+        "Deprecated in **FastStream 0.5.44**. "
+        "Please, use `stop` method instead. "
+        "Method `close` will be removed in **FastStream 0.7.0**.",
+        category=DeprecationWarning,
+        stacklevel=1,
+    )
+    async def close(
+        self,
+        exc_type: type[BaseException] | None = None,
+        exc_val: BaseException | None = None,
+        exc_tb: Optional["TracebackType"] = None,
+    ) -> None:
+        await self.stop(exc_type, exc_val, exc_tb)
 
     async def start(self) -> None:
         """Connect broker to NATS cluster and startup all subscribers."""
@@ -656,15 +674,16 @@ class NatsBroker(
             headers=headers,
             reply_to=reply_to,
             stream=stream,
-            timeout=timeout,
+            timeout=timeout or 0.5,
             _publish_type=PublishType.PUBLISH,
         )
 
-        producer = (
-            self.config.js_producer if stream is not None else self.config.producer
-        )
-
-        return await super()._basic_publish(cmd, producer=producer)
+        result: PubAck | None
+        if stream:
+            result = await super()._basic_publish(cmd, producer=self.config.js_producer)
+        else:
+            result = await super()._basic_publish(cmd, producer=self.config.producer)
+        return result
 
     @override
     async def request(  # type: ignore[override]
@@ -737,7 +756,8 @@ class NatsBroker(
         # custom
         declare: bool = True,
     ) -> "KeyValue":
-        return await self.config.kv_declarer.create_key_value(
+        kv_declarer = cast("KVBucketDeclarer", self.config.kv_declarer)
+        return await kv_declarer.create_key_value(
             bucket=bucket,
             description=description,
             max_value_size=max_value_size,
@@ -762,10 +782,10 @@ class NatsBroker(
         storage: Optional["StorageType"] = None,
         replicas: int = 1,
         placement: Optional["Placement"] = None,
-        # custom
         declare: bool = True,
     ) -> "ObjectStore":
-        return await self.config.os_declarer.create_object_store(
+        os_declarer = cast("OSBucketDeclarer", self.config.os_declarer)
+        return await os_declarer.create_object_store(
             bucket=bucket,
             description=description,
             ttl=ttl,
@@ -842,3 +862,12 @@ class NatsBroker(
                 await anyio.sleep(sleep_time)
 
         return False
+
+    @override
+    async def publish_batch(  # type: ignore[override]
+        self,
+        *messages: SendableMessage,
+        subject: str,
+    ) -> None:
+        msg = "NATS doesn't support publishing in batches."
+        raise FeatureNotSupportedException(msg)

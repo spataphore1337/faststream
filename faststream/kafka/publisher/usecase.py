@@ -1,12 +1,11 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Annotated, Any, Literal, Union, overload
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Union, cast, overload
 
 from aiokafka import ConsumerRecord
 from typing_extensions import Doc, override
 
 from faststream._internal.endpoint.publisher import PublisherUsecase
 from faststream._internal.types import MsgType
-from faststream.exceptions import NOT_CONNECTED_YET
 from faststream.kafka.message import KafkaMessage
 from faststream.kafka.response import KafkaPublishCommand
 from faststream.message import gen_cor_id
@@ -18,24 +17,22 @@ if TYPE_CHECKING:
     from aiokafka.structs import RecordMetadata
 
     from faststream._internal.basic_types import SendableMessage
+    from faststream._internal.endpoint.publisher import PublisherSpecification
     from faststream._internal.types import PublisherMiddleware
     from faststream.kafka.message import KafkaMessage
-    from faststream.kafka.publisher.producer import AioKafkaFastProducer
     from faststream.response.response import PublishCommand
 
     from .config import KafkaPublisherConfig
-    from .specification import KafkaPublisherSpecification
+    from .producer import AioKafkaFastProducer
 
 
 class LogicPublisher(PublisherUsecase[MsgType]):
     """A class to publish messages to a Kafka topic."""
 
-    _producer: "AioKafkaFastProducer"
-
     def __init__(
         self,
         config: "KafkaPublisherConfig",
-        specification: "KafkaPublisherSpecification",
+        specification: "PublisherSpecification[Any, Any]",
     ) -> None:
         super().__init__(config, specification)
 
@@ -120,19 +117,21 @@ class LogicPublisher(PublisherUsecase[MsgType]):
             _publish_type=PublishType.REQUEST,
         )
 
-        msg: KafkaMessage = await self._basic_request(cmd)
+        msg: KafkaMessage = await self._basic_request(
+            cmd, producer=self._outer_config.producer
+        )
         return msg
 
     async def flush(self) -> None:
-        assert self._producer, NOT_CONNECTED_YET  # nosec B101
-        return await self._producer.flush()
+        producer = cast("AioKafkaFastProducer", self._outer_config.producer)
+        await producer.flush()
 
 
 class DefaultPublisher(LogicPublisher[ConsumerRecord]):
     def __init__(
         self,
         config: "KafkaPublisherConfig",
-        specification: "KafkaPublisherSpecification",
+        specification: "PublisherSpecification[Any, Any]",
     ) -> None:
         super().__init__(config, specification)
 
@@ -229,7 +228,9 @@ class DefaultPublisher(LogicPublisher[ConsumerRecord]):
             no_confirm=no_confirm,
             _publish_type=PublishType.PUBLISH,
         )
-        return await self._basic_publish(cmd, _extra_middlewares=())
+        return await self._basic_publish(
+            cmd, producer=self._outer_config.producer, _extra_middlewares=()
+        )
 
     @override
     async def _publish(
@@ -248,7 +249,11 @@ class DefaultPublisher(LogicPublisher[ConsumerRecord]):
         cmd.partition = cmd.partition or self.partition
         cmd.key = cmd.key or self.key
 
-        await self._basic_publish(cmd, _extra_middlewares=_extra_middlewares)
+        await self._basic_publish(
+            cmd,
+            producer=self._outer_config.producer,
+            _extra_middlewares=_extra_middlewares,
+        )
 
     @override
     async def request(
@@ -401,7 +406,9 @@ class BatchPublisher(LogicPublisher[tuple["ConsumerRecord", ...]]):
             _publish_type=PublishType.PUBLISH,
         )
 
-        return await self._basic_publish_batch(cmd, _extra_middlewares=())
+        return await self._basic_publish_batch(
+            cmd, producer=self._outer_config.producer, _extra_middlewares=()
+        )
 
     @override
     async def _publish(
@@ -419,4 +426,8 @@ class BatchPublisher(LogicPublisher[tuple["ConsumerRecord", ...]]):
 
         cmd.partition = cmd.partition or self.partition
 
-        await self._basic_publish_batch(cmd, _extra_middlewares=_extra_middlewares)
+        await self._basic_publish_batch(
+            cmd,
+            producer=self._outer_config.producer,
+            _extra_middlewares=_extra_middlewares,
+        )

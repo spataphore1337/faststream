@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 
 import anyio
 from aio_pika import IncomingMessage, RobustConnection, connect_robust
-from typing_extensions import override
+from typing_extensions import deprecated, override
 
 from faststream.__about__ import SERVICE_NAME
 from faststream._internal.broker import BrokerUsecase
@@ -21,7 +21,6 @@ from faststream.rabbit.configs import RabbitBrokerConfig
 from faststream.rabbit.helpers.channel_manager import ChannelManagerImpl
 from faststream.rabbit.helpers.declarer import RabbitDeclarerImpl
 from faststream.rabbit.publisher.producer import (
-    AioPikaFastProducer,
     AioPikaFastProducerImpl,
 )
 from faststream.rabbit.response import RabbitPublishCommand
@@ -54,11 +53,12 @@ if TYPE_CHECKING:
     from yarl import URL
 
     from faststream._internal.basic_types import LoggerProto
-    from faststream._internal.broker.abc_broker import Registrator
+    from faststream._internal.broker.registrator import Registrator
     from faststream._internal.types import (
         BrokerMiddleware,
         CustomCallable,
     )
+    from faststream.rabbit.helpers import RabbitDeclarer
     from faststream.rabbit.message import RabbitMessage
     from faststream.rabbit.types import AioPikaSendableMessage
     from faststream.rabbit.utils import RabbitClientProperties
@@ -71,11 +71,6 @@ class RabbitBroker(
     BrokerUsecase[IncomingMessage, RobustConnection],
 ):
     """A class to represent a RabbitMQ broker."""
-
-    url: str
-
-    _producer: "AioPikaFastProducer"
-    _channel: Optional["RobustChannel"]
 
     def __init__(
         self,
@@ -220,7 +215,7 @@ class RabbitBroker(
             ),
         )
 
-        self._channel = None
+        self._channel: RobustChannel | None = None
 
     @override
     async def _connect(self) -> "RobustConnection":
@@ -235,13 +230,13 @@ class RabbitBroker(
 
         return connection
 
-    async def close(
+    async def stop(
         self,
         exc_type: type[BaseException] | None = None,
         exc_val: BaseException | None = None,
         exc_tb: Optional["TracebackType"] = None,
     ) -> None:
-        await super().close(exc_type, exc_val, exc_tb)
+        await super().stop(exc_type, exc_val, exc_tb)
 
         if self._channel is not None:
             if not self._channel.is_closed:
@@ -254,6 +249,21 @@ class RabbitBroker(
             self._connection = None
 
         self.config.disconnect()
+
+    @deprecated(
+        "Deprecated in **FastStream 0.5.44**. "
+        "Please, use `stop` method instead. "
+        "Method `close` will be removed in **FastStream 0.7.0**.",
+        category=DeprecationWarning,
+        stacklevel=1,
+    )
+    async def close(
+        self,
+        exc_type: type[BaseException] | None = None,
+        exc_val: BaseException | None = None,
+        exc_tb: Optional["TracebackType"] = None,
+    ) -> None:
+        await self.stop(exc_type, exc_val, exc_tb)
 
     async def start(self) -> None:
         """Connect broker to RabbitMQ and startup all subscribers."""
@@ -360,7 +370,10 @@ class RabbitBroker(
             _publish_type=PublishType.PUBLISH,
         )
 
-        return await super()._basic_publish(cmd, producer=self._producer)
+        result: aiormq.abc.ConfirmationFrameType | None = await super()._basic_publish(
+            cmd, producer=self._producer
+        )
+        return result
 
     @override
     async def request(  # type: ignore[override]
@@ -441,11 +454,13 @@ class RabbitBroker(
 
     async def declare_queue(self, queue: "RabbitQueue") -> "RobustQueue":
         """Declares queue object in **RabbitMQ**."""
-        return await self.config.declarer.declare_queue(queue)
+        declarer: RabbitDeclarer = self.config.declarer
+        return await declarer.declare_queue(queue)
 
     async def declare_exchange(self, exchange: "RabbitExchange") -> "RobustExchange":
         """Declares exchange object in **RabbitMQ**."""
-        return await self.config.declarer.declare_exchange(exchange)
+        declarer: RabbitDeclarer = self.config.declarer
+        return await declarer.declare_exchange(exchange)
 
     @override
     async def ping(self, timeout: float | None) -> bool:

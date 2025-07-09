@@ -11,7 +11,7 @@ from typing import (
 
 from typing_extensions import override
 
-from faststream._internal.broker.abc_broker import Registrator
+from faststream._internal.broker.registrator import Registrator
 from faststream._internal.constants import EMPTY
 from faststream.confluent.publisher.factory import create_publisher
 from faststream.confluent.subscriber.factory import create_subscriber
@@ -97,7 +97,7 @@ class KafkaRegistrator(
         title: str | None = None,
         description: str | None = None,
         include_in_schema: bool = True,
-    ) -> "SpecificationBatchSubscriber": ...
+    ) -> "BatchSubscriber": ...
 
     @overload
     def subscriber(
@@ -558,7 +558,7 @@ class KafkaRegistrator(
         *,
         prefix: str = "",
         dependencies: Iterable["Dependant"] = (),
-        middlewares: Iterable["BrokerMiddleware[Message | tuple[Message, ...]]"] = (),
+        middlewares: Sequence["BrokerMiddleware[Message | tuple[Message, ...]]"] = (),
         include_in_schema: bool | None = None,
     ) -> None:
         if not isinstance(router, KafkaRegistrator):

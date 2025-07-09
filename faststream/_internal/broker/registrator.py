@@ -2,36 +2,25 @@ from abc import abstractmethod
 from collections.abc import Iterable, Sequence
 from typing import (
     TYPE_CHECKING,
+    Any,
     Generic,
 )
 
-from faststream._internal.configs import BrokerConfig, ConfigComposition
-from faststream._internal.endpoint.publisher import PublisherProto
-from faststream._internal.endpoint.subscriber import (
-    SubscriberProto,
+from faststream._internal.configs import (
+    BrokerConfig,
+    BrokerConfigType,
+    ConfigComposition,
 )
 from faststream._internal.types import BrokerMiddleware, MsgType
 
 if TYPE_CHECKING:
     from fast_depends.dependencies import Dependant
 
-
-class FinalSubscriber(
-    SubscriberProto[MsgType],
-):
-    @property
-    @abstractmethod
-    def call_name(self) -> str:
-        raise NotImplementedError
+    from faststream._internal.endpoint.publisher import PublisherUsecase
+    from faststream._internal.endpoint.subscriber import SubscriberUsecase
 
 
-class FinalPublisher(
-    PublisherProto[MsgType],
-):
-    pass
-
-
-class Registrator(Generic[MsgType]):
+class Registrator(Generic[MsgType, BrokerConfigType]):
     """Basic class for brokers and routers.
 
     Contains subscribers & publishers registration logic only.
@@ -40,25 +29,26 @@ class Registrator(Generic[MsgType]):
     def __init__(
         self,
         *,
-        config: "BrokerConfig",
+        config: BrokerConfigType,
         routers: Sequence["Registrator[MsgType]"],
     ) -> None:
-        self.config = ConfigComposition(config)
-        self._parser = self.config.broker_parser
-        self._decoder = self.config.broker_decoder
+        self._parser = config.broker_parser
+        self._decoder = config.broker_decoder
 
-        self._subscribers: list[FinalSubscriber[MsgType]] = []
-        self._publishers: list[FinalPublisher[MsgType]] = []
-        self.routers: list[Registrator] = []
+        self.config: ConfigComposition[BrokerConfigType] = ConfigComposition(config)
+
+        self._subscribers: list[SubscriberUsecase[MsgType]] = []
+        self._publishers: list[PublisherUsecase[MsgType]] = []
+        self.routers: list[Registrator[MsgType, Any]] = []
 
         self.include_routers(*routers)
 
     @property
-    def subscribers(self) -> list[FinalSubscriber[MsgType]]:
+    def subscribers(self) -> list["SubscriberUsecase[MsgType]"]:
         return self._subscribers + [sub for r in self.routers for sub in r.subscribers]
 
     @property
-    def publishers(self) -> list[FinalPublisher[MsgType]]:
+    def publishers(self) -> list["PublisherUsecase[MsgType]"]:
         return self._publishers + [pub for r in self.routers for pub in r.publishers]
 
     def add_middleware(self, middleware: "BrokerMiddleware[MsgType]") -> None:
@@ -78,26 +68,26 @@ class Registrator(Generic[MsgType]):
     @abstractmethod
     def subscriber(
         self,
-        subscriber: "FinalSubscriber[MsgType]",
-    ) -> "FinalSubscriber[MsgType]":
+        subscriber: "SubscriberUsecase[MsgType]",
+    ) -> "SubscriberUsecase[MsgType]":
         self._subscribers.append(subscriber)
         return subscriber
 
     @abstractmethod
     def publisher(
         self,
-        publisher: "FinalPublisher[MsgType]",
-    ) -> "FinalPublisher[MsgType]":
+        publisher: "PublisherUsecase[MsgType]",
+    ) -> "PublisherUsecase[MsgType]":
         self._publishers.append(publisher)
         return publisher
 
     def include_router(
         self,
-        router: "Registrator[MsgType]",
+        router: "Registrator[MsgType, Any]",
         *,
         prefix: str = "",
         dependencies: Iterable["Dependant"] = (),
-        middlewares: Iterable["BrokerMiddleware[MsgType]"] = (),
+        middlewares: Sequence["BrokerMiddleware[MsgType]"] = (),
         include_in_schema: bool | None = None,
     ) -> None:
         """Includes a router in the current object."""
@@ -114,7 +104,7 @@ class Registrator(Generic[MsgType]):
 
     def include_routers(
         self,
-        *routers: "Registrator[MsgType]",
+        *routers: "Registrator[MsgType, Any]",
     ) -> None:
         """Includes routers in the object."""
         for r in routers:

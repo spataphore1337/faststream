@@ -72,7 +72,7 @@ class StartAbleApplication:
         self,
         broker: Optional["BrokerUsecase[Any, Any]"] = None,
         /,
-        specification: "SpecificationFactory" = None,
+        specification: Optional["SpecificationFactory"] = None,
         config: Optional["FastDependsConfig"] = None,
     ) -> None:
         self._init_setupable_(
@@ -243,7 +243,7 @@ class Application(StartAbleApplication):
         """Executes shutdown hooks and stop broker."""
         async with self._shutdown_hooks_context():
             for broker in self.brokers:
-                await broker.close()
+                await broker.stop()
 
     @asynccontextmanager
     async def _shutdown_hooks_context(self) -> AsyncIterator[None]:

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import AsyncIterator, Callable, Iterable, Sequence
 from contextlib import AbstractContextManager, AsyncExitStack
 from itertools import chain
 from typing import (
@@ -13,6 +13,7 @@ from typing import (
 
 from typing_extensions import Self, deprecated, overload, override
 
+from faststream._internal.endpoint.usecase import Endpoint
 from faststream._internal.endpoint.utils import resolve_custom_func
 from faststream._internal.types import (
     MsgType,
@@ -29,16 +30,15 @@ from .call_item import (
     CallsCollection,
     HandlerItem,
 )
-from .proto import SubscriberProto
 from .utils import MultiLock, default_filter
 
 if TYPE_CHECKING:
     from fast_depends.dependencies import Dependant
 
-    from faststream._internal.basic_types import AnyDict
+    from faststream._internal.basic_types import AnyDict, Decorator
     from faststream._internal.configs import SubscriberUsecaseConfig
     from faststream._internal.endpoint.call_wrapper import HandlerCallWrapper
-    from faststream._internal.endpoint.publisher import BasePublisherProto
+    from faststream._internal.endpoint.publisher import PublisherProto
     from faststream._internal.types import (
         AsyncFilter,
         BrokerMiddleware,
@@ -61,7 +61,7 @@ class _CallOptions(NamedTuple):
     dependencies: Iterable["Dependant"]
 
 
-class SubscriberUsecase(SubscriberProto[MsgType]):
+class SubscriberUsecase(Endpoint[MsgType]):
     """A class representing an asynchronous handler."""
 
     lock: "AbstractContextManager[Any]"
@@ -74,9 +74,11 @@ class SubscriberUsecase(SubscriberProto[MsgType]):
         self,
         config: "SubscriberUsecaseConfig",
         specification: "SubscriberSpecification",
-        calls: "CallsCollection",
+        calls: "CallsCollection[MsgType]",
     ) -> None:
         """Initialize a new instance of the class."""
+        super().__init__(config._outer_config)
+
         self.calls = calls
         self.specification = specification
 
@@ -86,13 +88,10 @@ class SubscriberUsecase(SubscriberProto[MsgType]):
         self.ack_policy = config.ack_policy
 
         self._call_options = None
-        self._call_decorators = ()
+        self._call_decorators: tuple[Decorator, ...] = ()
 
         self.running = False
         self.lock = FakeContext()
-
-        # Setup in registration
-        self._outer_config = config._outer_config
 
         self.extra_watcher_options = {}
 
@@ -137,8 +136,8 @@ class SubscriberUsecase(SubscriberProto[MsgType]):
         self.running = True
 
     @abstractmethod
-    async def close(self) -> None:
-        """Close the handler.
+    async def stop(self) -> None:
+        """Stop message consuming.
 
         Blocks event loop up to graceful_timeout seconds.
         """
@@ -277,11 +276,11 @@ class SubscriberUsecase(SubscriberProto[MsgType]):
 
         except StopConsume:
             # Stop handler at StopConsume exception
-            await self.close()
+            await self.stop()
 
         except SystemExit:
             # Stop handler at `exit()` call
-            await self.close()
+            await self.stop()
 
             if app := self._outer_config.fd_config.context.get("app"):
                 app.exit()
@@ -396,11 +395,27 @@ class SubscriberUsecase(SubscriberProto[MsgType]):
     def __get_response_publisher(
         self,
         message: "StreamMessage[MsgType]",
-    ) -> Iterable["BasePublisherProto"]:
+    ) -> Iterable["PublisherProto"]:
         if not message.reply_to or self._no_reply:
             return ()
 
         return self._make_response_publisher(message)
+
+    @abstractmethod
+    def _make_response_publisher(
+        self, message: "StreamMessage[MsgType]"
+    ) -> Iterable["PublisherProto"]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_one(
+        self, *, timeout: float = 5
+    ) -> Optional["StreamMessage[MsgType]"]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def __aiter__(self) -> AsyncIterator["StreamMessage[MsgType]"]:
+        raise NotImplementedError
 
     def get_log_context(
         self,

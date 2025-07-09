@@ -4,7 +4,7 @@ import warnings
 from contextlib import suppress
 from pathlib import Path
 from pprint import pformat
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import typer
 from pydantic import ValidationError
@@ -30,6 +30,8 @@ from .options import (
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from faststream.specification.base import SpecificationFactory
 
 docs_app = typer.Typer(pretty_exceptions_short=True)
 
@@ -121,8 +123,12 @@ def gen(
         sys.path.insert(0, app_dir)
 
     _, app_obj = import_from_string(app, is_factory=is_factory)
+    schema_factory = cast("SpecificationFactory | None", getattr(app, "schema", None))
+    if not schema_factory:
+        msg = f"{app_obj} doesn't have `schema` attribute"
+        raise ValueError(msg)
 
-    raw_schema = app_obj.schema.to_specification()
+    raw_schema = schema_factory.to_specification()
 
     if yaml:
         try:
@@ -162,7 +168,13 @@ def _parse_and_serve(
 ) -> None:
     if ":" in docs:
         _, app = import_from_string(docs, is_factory=is_factory)
-        raw_schema = app.schema.to_specification()
+        schema_factory = cast(
+            "SpecificationFactory | None", getattr(app, "schema", None)
+        )
+        if not schema_factory:
+            msg = f"{app} doesn't have `schema` attribute"
+            raise ValueError(msg)
+        raw_schema = schema_factory.to_specification()
 
     else:
         schema_filepath = Path.cwd() / docs

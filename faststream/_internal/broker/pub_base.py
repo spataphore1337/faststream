@@ -39,7 +39,7 @@ class BrokerPublishMixin(Generic[MsgType]):
         self,
         cmd: "PublishCommand",
         *,
-        producer: "ProducerProto",
+        producer: "ProducerProto[Any]",
     ) -> Any:
         publish = producer.publish
         context = self.context  # caches property
@@ -61,7 +61,7 @@ class BrokerPublishMixin(Generic[MsgType]):
         self,
         cmd: "PublishCommand",
         *,
-        producer: "ProducerProto",
+        producer: "ProducerProto[Any]",
     ) -> Any:
         publish = producer.publish_batch
         context = self.context  # caches property
@@ -85,7 +85,7 @@ class BrokerPublishMixin(Generic[MsgType]):
         self,
         cmd: "PublishCommand",
         *,
-        producer: "ProducerProto",
+        producer: "ProducerProto[Any]",
     ) -> Any:
         request = producer.request
         context = self.context  # caches property

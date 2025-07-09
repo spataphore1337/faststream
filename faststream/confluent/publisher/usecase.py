@@ -1,10 +1,13 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Union
 
 from confluent_kafka import Message
 from typing_extensions import override
 
-from faststream._internal.endpoint.publisher import PublisherUsecase
+from faststream._internal.endpoint.publisher import (
+    PublisherSpecification,
+    PublisherUsecase,
+)
 from faststream._internal.types import MsgType
 from faststream.confluent.response import KafkaPublishCommand
 from faststream.message import gen_cor_id
@@ -19,19 +22,15 @@ if TYPE_CHECKING:
     from faststream.response.response import PublishCommand
 
     from .config import KafkaPublisherConfig
-    from .producer import AsyncConfluentFastProducer
-    from .specification import KafkaPublisherSpecification
 
 
 class LogicPublisher(PublisherUsecase[MsgType]):
     """A class to publish messages to a Kafka topic."""
 
-    _producer: "AsyncConfluentFastProducer"
-
     def __init__(
         self,
         config: "KafkaPublisherConfig",
-        specifcication: "KafkaPublisherSpecification",
+        specifcication: "PublisherSpecification[Any, Any]",
     ) -> None:
         super().__init__(config, specifcication)
 
@@ -69,18 +68,20 @@ class LogicPublisher(PublisherUsecase[MsgType]):
             _publish_type=PublishType.REQUEST,
         )
 
-        msg: KafkaMessage = await self._basic_request(cmd)
+        msg: KafkaMessage = await self._basic_request(
+            cmd, producer=self._outer_config.producer
+        )
         return msg
 
     async def flush(self) -> None:
-        await self._producer.flush()
+        await self._outer_config.producer.flush()
 
 
 class DefaultPublisher(LogicPublisher[Message]):
     def __init__(
         self,
         config: "KafkaPublisherConfig",
-        specifcication: "KafkaPublisherSpecification",
+        specifcication: "PublisherSpecification[Any, Any]",
     ) -> None:
         super().__init__(config, specifcication)
 
@@ -112,7 +113,9 @@ class DefaultPublisher(LogicPublisher[Message]):
             no_confirm=no_confirm,
             _publish_type=PublishType.PUBLISH,
         )
-        return await self._basic_publish(cmd, _extra_middlewares=())
+        return await self._basic_publish(
+            cmd, producer=self._outer_config.producer, _extra_middlewares=()
+        )
 
     @override
     async def _publish(
@@ -131,7 +134,11 @@ class DefaultPublisher(LogicPublisher[Message]):
         cmd.partition = cmd.partition or self.partition
         cmd.key = cmd.key or self.key
 
-        await self._basic_publish(cmd, _extra_middlewares=_extra_middlewares)
+        await self._basic_publish(
+            cmd,
+            producer=self._outer_config.producer,
+            _extra_middlewares=_extra_middlewares,
+        )
 
     @override
     async def request(
@@ -184,7 +191,9 @@ class BatchPublisher(LogicPublisher[tuple[Message, ...]]):
             _publish_type=PublishType.PUBLISH,
         )
 
-        return await self._basic_publish_batch(cmd, _extra_middlewares=())
+        return await self._basic_publish_batch(
+            cmd, producer=self._outer_config.producer, _extra_middlewares=()
+        )
 
     @override
     async def _publish(
@@ -202,4 +211,8 @@ class BatchPublisher(LogicPublisher[tuple[Message, ...]]):
 
         cmd.partition = cmd.partition or self.partition
 
-        await self._basic_publish_batch(cmd, _extra_middlewares=_extra_middlewares)
+        await self._basic_publish_batch(
+            cmd,
+            producer=self._outer_config.producer,
+            _extra_middlewares=_extra_middlewares,
+        )

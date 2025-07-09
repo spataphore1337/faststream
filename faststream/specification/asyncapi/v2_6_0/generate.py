@@ -41,7 +41,7 @@ def get_app_schema(
     title: str,
     app_version: str,
     schema_version: str,
-    description: str,
+    description: str | None,
     terms_of_service: Optional["AnyHttpUrl"],
     contact: Union["SpecContact", "ContactDict", "AnyDict"] | None,
     license: Union["SpecLicense", "LicenseDict", "AnyDict"] | None,

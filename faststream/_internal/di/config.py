@@ -29,7 +29,7 @@ class BuiltDependant:
 class FastDependsConfig:
     use_fastdepends: bool = True
 
-    provider: Optional["Provider"] = field(default_factory=Provider)
+    provider: "Provider" = field(default_factory=Provider)
     serializer: Optional["SerializerProto"] = field(default_factory=lambda: EMPTY)
 
     context: "ContextRepo" = field(default_factory=ContextRepo)
@@ -52,7 +52,7 @@ class FastDependsConfig:
 
         return FastDependsConfig(
             use_fastdepends=use_fd,
-            provider=value.provider or self.provider,
+            provider=value.provider,
             serializer=self.serializer or value.serializer,
             context=self.context,
             call_decorators=(*value.call_decorators, *self.call_decorators),
@@ -63,8 +63,8 @@ class FastDependsConfig:
         self,
         call: Callable[..., Any],
         *,
-        dependencies: Sequence["Dependant"],
-        call_decorators: Reversible["Decorator"],
+        dependencies: Sequence["Dependant"] = (),
+        call_decorators: Reversible["Decorator"] = (),
     ) -> BuiltDependant:
         for d in reversed((*call_decorators, *self.call_decorators)):
             call = d(call)
@@ -75,8 +75,6 @@ class FastDependsConfig:
             dependent = self.get_dependent(wrapped_call, dependencies)
 
         else:
-            assert self.provider
-
             dependent = build_call_model(
                 wrapped_call,
                 extra_dependencies=dependencies,
